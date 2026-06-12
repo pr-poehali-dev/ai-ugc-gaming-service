@@ -1,10 +1,48 @@
 import { useState, useEffect, useCallback, useRef } from "react";
-import Icon from "@/components/ui/icon";
+import {
+  BookOpenIcon,
+  CheckCircleIcon,
+  TrophyIcon,
+  StarIcon,
+  UserGroupIcon,
+  UserCircleIcon,
+  BoltIcon,
+  FireIcon,
+  ChevronRightIcon,
+  PlusIcon,
+  XMarkIcon,
+  HeartIcon,
+  ChatBubbleOvalLeftIcon,
+  ShareIcon,
+  ArrowRightOnRectangleIcon,
+  BellIcon,
+  PencilIcon,
+  LockClosedIcon,
+  CheckIcon,
+  AcademicCapIcon,
+  ClockIcon,
+  SparklesIcon,
+  PlayIcon,
+  ChartBarIcon,
+  NewspaperIcon,
+  Squares2X2Icon,
+  IdentificationIcon,
+} from "@heroicons/react/24/solid";
 
 // ─── URLs ──────────────────────────────────────────────────────────────────
 const AUTH_URL = "https://functions.poehali.dev/16228047-1a09-4827-af8c-d5ca8dd48885";
 const API_URL  = "https://functions.poehali.dev/58712cb3-8e82-4bb3-9940-6fa8d4df92b0";
 const TOKEN_KEY = "aiquest_token";
+
+// ─── Palette ──────────────────────────────────────────────────────────────
+const G    = "#2d7a4f";
+const GL   = "#e8f5ee";
+const GM   = "#3d9962";
+const B    = "#8b5e3c";
+const BL   = "#f5ede4";
+const BM   = "#a67048";
+const STONE = "#f5f1ec";
+const ACCENTS = [G, B, GM, BM, "#4a7c59", "#7a4f2d", "#5c9e72", "#9e6b42"];
 
 // ─── Types ─────────────────────────────────────────────────────────────────
 interface User { id: number; username: string; email: string; avatar: string; xp: number; level: number; streak: number; }
@@ -17,13 +55,8 @@ type Tab = "courses" | "tasks" | "rating" | "profile" | "community" | "achieveme
 
 // ─── API helpers ────────────────────────────────────────────────────────────
 function getToken() { return localStorage.getItem(TOKEN_KEY) || ""; }
-
 async function apiPost(url: string, body: Record<string, unknown>) {
-  const res = await fetch(url, {
-    method: "POST",
-    headers: { "Content-Type": "application/json", "X-Session-Token": getToken() },
-    body: JSON.stringify(body),
-  });
+  const res = await fetch(url, { method: "POST", headers: { "Content-Type": "application/json", "X-Session-Token": getToken() }, body: JSON.stringify(body) });
   return res.json();
 }
 async function apiGet(url: string) {
@@ -33,36 +66,48 @@ async function apiGet(url: string) {
 const authPost = (body: Record<string, string>) => apiPost(AUTH_URL, body);
 const api      = (body: Record<string, unknown>) => apiPost(API_URL, body);
 
-// ─── Shared UI ──────────────────────────────────────────────────────────────
-const rarityColor: Record<string, string> = {
-  "Легендарное": "#fb923c", "Эпическое": "#a855f7", "Редкое": "#22d3ee", "Обычное": "#9ca3af",
+// ─── Rarity styles ──────────────────────────────────────────────────────────
+const rarityMap: Record<string, { bg: string; text: string; border: string }> = {
+  "Легендарное": { bg: "#fff7ed", text: "#92400e", border: "#fcd9a4" },
+  "Эпическое":   { bg: GL,       text: "#14532d", border: "#bcdece" },
+  "Редкое":      { bg: BL,       text: "#78350f", border: "#dbc9b4" },
+  "Обычное":     { bg: "#f3f4f6", text: "#6b7280", border: "#d1d5db" },
 };
 
-function XpBar({ progress, color = "#a855f7" }: { progress: number; color?: string }) {
+// ─── Shared UI ──────────────────────────────────────────────────────────────
+function XpBar({ progress, green = true }: { progress: number; green?: boolean }) {
   return (
-    <div className="w-full h-2 rounded-full bg-white/10 overflow-hidden">
+    <div className="w-full h-2 rounded-full overflow-hidden" style={{ background: "#e8e0d6" }}>
       <div className="h-full rounded-full relative overflow-hidden transition-all duration-700"
-        style={{ width: `${Math.min(progress, 100)}%`, background: `linear-gradient(90deg, ${color}, ${color}99)` }}>
-        <div className="absolute inset-0 animate-shimmer bg-gradient-to-r from-transparent via-white/30 to-transparent" />
+        style={{ width: `${Math.min(progress, 100)}%`, background: green ? `linear-gradient(90deg, ${G}, ${GM})` : `linear-gradient(90deg, ${B}, ${BM})` }}>
+        <div className="absolute inset-0 animate-shimmer bg-gradient-to-r from-transparent via-white/40 to-transparent" />
       </div>
     </div>
   );
 }
 
 function Skeleton({ className = "" }: { className?: string }) {
-  return <div className={`animate-pulse bg-white/8 rounded-xl ${className}`} />;
+  return <div className={`animate-pulse rounded-xl ${className}`} style={{ background: "#f0ebe4" }} />;
 }
 
-const NAV_ITEMS: { id: Tab; label: string; emoji: string }[] = [
-  { id: "courses",      label: "Курсы",       emoji: "📚" },
-  { id: "tasks",        label: "Задания",      emoji: "✅" },
-  { id: "rating",       label: "Рейтинг",     emoji: "🏆" },
-  { id: "achievements", label: "Достижения",  emoji: "🎖️" },
-  { id: "community",    label: "Сообщество",  emoji: "💬" },
-  { id: "profile",      label: "Профиль",     emoji: "👤" },
+function Tag({ children, accent = G }: { children: React.ReactNode; accent?: string }) {
+  return (
+    <span className="badge-game text-[10px]" style={{ background: `${accent}18`, color: accent, border: `1px solid ${accent}30` }}>
+      {children}
+    </span>
+  );
+}
+
+const NAV_ITEMS: { id: Tab; label: string; Icon: React.FC<React.SVGProps<SVGSVGElement>> }[] = [
+  { id: "courses",      label: "Курсы",      Icon: BookOpenIcon },
+  { id: "tasks",        label: "Задания",    Icon: CheckCircleIcon },
+  { id: "rating",       label: "Рейтинг",   Icon: TrophyIcon },
+  { id: "achievements", label: "Достижения", Icon: StarIcon },
+  { id: "community",    label: "Сообщество", Icon: UserGroupIcon },
+  { id: "profile",      label: "Профиль",   Icon: UserCircleIcon },
 ];
 
-// ─── Auth Screen ────────────────────────────────────────────────────────────
+// ─── Auth Screen ─────────────────────────────────────────────────────────────
 function AuthScreen({ onAuth }: { onAuth: (user: User) => void }) {
   const [mode, setMode] = useState<"login" | "register">("login");
   const [form, setForm] = useState({ username: "", email: "", login: "", password: "" });
@@ -83,19 +128,21 @@ function AuthScreen({ onAuth }: { onAuth: (user: User) => void }) {
   };
 
   return (
-    <div className="min-h-screen bg-background grid-bg font-rubik flex items-center justify-center px-4">
+    <div className="min-h-screen grid-bg font-rubik flex items-center justify-center px-4">
       <div className="w-full max-w-sm animate-scale-in">
         <div className="text-center mb-8">
-          <div className="w-20 h-20 rounded-3xl bg-neon-purple/20 border-2 border-neon-purple/50 flex items-center justify-center text-4xl mx-auto mb-4 neon-glow-purple animate-float">🧠</div>
-          <h1 className="font-mono-rubik text-3xl text-white tracking-tight">AIQuest</h1>
-          <p className="text-white/40 text-sm mt-1">Обучение ИИ — это игра</p>
+          <div className="w-20 h-20 rounded-3xl flex items-center justify-center mx-auto mb-4 shadow-green pulse-ring" style={{ background: G }}>
+            <AcademicCapIcon className="w-10 h-10 text-white" />
+          </div>
+          <h1 className="font-mono-rubik text-3xl tracking-tight" style={{ color: G }}>AIQuest</h1>
+          <p className="text-sm mt-1" style={{ color: BM }}>Обучение ИИ — это игра</p>
         </div>
-        <div className="card-game rounded-3xl p-6" style={{ border: "1px solid rgba(168,85,247,0.2)" }}>
-          <div className="flex rounded-2xl bg-white/5 p-1 mb-6">
+        <div className="card-game rounded-3xl p-6">
+          <div className="flex rounded-xl p-1 mb-6" style={{ background: STONE }}>
             {(["login", "register"] as const).map(m => (
               <button key={m} onClick={() => { setMode(m); setError(""); }}
-                className="flex-1 py-2 rounded-xl text-sm font-semibold transition-all duration-200"
-                style={mode === m ? { background: "rgba(168,85,247,0.3)", color: "#a855f7" } : { color: "rgba(255,255,255,0.4)" }}>
+                className="flex-1 py-2 rounded-lg text-sm font-semibold transition-all duration-200"
+                style={mode === m ? { background: "#fff", color: G, boxShadow: "0 1px 4px rgba(0,0,0,0.1)" } : { color: BM }}>
                 {m === "login" ? "Войти" : "Регистрация"}
               </button>
             ))}
@@ -103,44 +150,55 @@ function AuthScreen({ onAuth }: { onAuth: (user: User) => void }) {
           <form onSubmit={submit} className="space-y-3">
             {mode === "register" && (
               <div>
-                <label className="text-white/50 text-xs mb-1 block">Имя игрока</label>
+                <label className="text-xs mb-1 block font-medium" style={{ color: BM }}>Имя игрока</label>
                 <input value={form.username} onChange={set("username")} placeholder="SuperAI_User"
-                  className="w-full px-4 py-3 rounded-xl bg-white/8 border border-white/10 text-white placeholder-white/25 text-sm outline-none focus:border-neon-purple/50 transition-colors" />
+                  className="w-full px-4 py-3 rounded-xl text-sm outline-none transition-colors"
+                  style={{ background: STONE, border: "1px solid #e8e0d6", color: "#2d2015" }} />
               </div>
             )}
             {mode === "register" ? (
               <div>
-                <label className="text-white/50 text-xs mb-1 block">Email</label>
+                <label className="text-xs mb-1 block font-medium" style={{ color: BM }}>Email</label>
                 <input type="email" value={form.email} onChange={set("email")} placeholder="you@example.com"
-                  className="w-full px-4 py-3 rounded-xl bg-white/8 border border-white/10 text-white placeholder-white/25 text-sm outline-none focus:border-neon-purple/50 transition-colors" />
+                  className="w-full px-4 py-3 rounded-xl text-sm outline-none transition-colors"
+                  style={{ background: STONE, border: "1px solid #e8e0d6", color: "#2d2015" }} />
               </div>
             ) : (
               <div>
-                <label className="text-white/50 text-xs mb-1 block">Email или имя</label>
+                <label className="text-xs mb-1 block font-medium" style={{ color: BM }}>Email или имя</label>
                 <input value={form.login} onChange={set("login")} placeholder="you@example.com"
-                  className="w-full px-4 py-3 rounded-xl bg-white/8 border border-white/10 text-white placeholder-white/25 text-sm outline-none focus:border-neon-purple/50 transition-colors" />
+                  className="w-full px-4 py-3 rounded-xl text-sm outline-none transition-colors"
+                  style={{ background: STONE, border: "1px solid #e8e0d6", color: "#2d2015" }} />
               </div>
             )}
             <div>
-              <label className="text-white/50 text-xs mb-1 block">Пароль</label>
+              <label className="text-xs mb-1 block font-medium" style={{ color: BM }}>Пароль</label>
               <input type="password" value={form.password} onChange={set("password")} placeholder="••••••••"
-                className="w-full px-4 py-3 rounded-xl bg-white/8 border border-white/10 text-white placeholder-white/25 text-sm outline-none focus:border-neon-purple/50 transition-colors" />
+                className="w-full px-4 py-3 rounded-xl text-sm outline-none transition-colors"
+                style={{ background: STONE, border: "1px solid #e8e0d6", color: "#2d2015" }} />
             </div>
-            {error && <div className="px-4 py-3 rounded-xl bg-red-500/15 border border-red-500/30 text-red-400 text-sm">{error}</div>}
+            {error && <div className="px-4 py-3 rounded-xl text-sm" style={{ background: "#fef2f2", border: "1px solid #fca5a5", color: "#dc2626" }}>{error}</div>}
             <button type="submit" disabled={loading}
-              className="w-full py-3 rounded-xl font-bold text-white text-sm transition-all active:scale-95 disabled:opacity-50 mt-2"
-              style={{ background: "linear-gradient(135deg, #a855f7, #7c3aed)", boxShadow: "0 0 20px rgba(168,85,247,0.35)" }}>
-              {loading ? "⏳ Загрузка..." : mode === "login" ? "⚡ Войти в игру" : "🚀 Создать аккаунт"}
+              className="w-full py-3 rounded-xl font-bold text-white text-sm transition-all active:scale-95 disabled:opacity-50 mt-2 flex items-center justify-center gap-2"
+              style={{ background: G, boxShadow: `0 4px 16px ${G}40` }}>
+              {loading ? <><ClockIcon className="w-4 h-4" /> Загрузка...</>
+                : mode === "login"
+                  ? <><BoltIcon className="w-4 h-4" /> Войти в игру</>
+                  : <><SparklesIcon className="w-4 h-4" /> Создать аккаунт</>}
             </button>
           </form>
         </div>
-        <p className="text-center text-white/25 text-xs mt-4">Учи ИИ-сервисы · Зарабатывай XP · Побеждай</p>
+        <p className="text-center text-xs mt-4" style={{ color: BM, opacity: 0.7 }}>
+          Учи ИИ-сервисы · Зарабатывай XP · Побеждай
+        </p>
       </div>
     </div>
   );
 }
 
 // ─── Courses Tab ─────────────────────────────────────────────────────────────
+const COURSE_ICONS = [BookOpenIcon, AcademicCapIcon, SparklesIcon, PlayIcon, ChartBarIcon, NewspaperIcon];
+
 function CoursesTab({ onXpGain }: { onXpGain: (xp: number, total: number) => void }) {
   const [courses, setCourses] = useState<Course[]>([]);
   const [loading, setLoading] = useState(true);
@@ -164,56 +222,73 @@ function CoursesTab({ onXpGain }: { onXpGain: (xp: number, total: number) => voi
     <div className="space-y-6">
       <div className="flex items-center justify-between animate-fade-in">
         <div>
-          <h2 className="text-2xl font-bold text-white">Курсы по ИИ</h2>
-          <p className="text-white/50 text-sm mt-0.5">{courses.length} курсов</p>
+          <h2 className="text-2xl font-bold" style={{ color: "#1a1008" }}>Курсы по ИИ</h2>
+          <p className="text-sm mt-0.5" style={{ color: BM }}>{courses.length} курсов доступно</p>
         </div>
-        <div className="badge-game bg-neon-purple/20 text-neon-purple border border-neon-purple/30">🔥 Актуально</div>
+        <Tag accent={G}>Актуально</Tag>
       </div>
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        {loading ? Array(6).fill(0).map((_, i) => <Skeleton key={i} className="h-44" />) :
-          courses.map((c, i) => (
-            <div key={c.id} className={`card-game rounded-2xl overflow-hidden hover-lift cursor-pointer animate-fade-in stagger-${Math.min(i+1,6)}`}>
-              <div className={`h-1.5 w-full bg-gradient-to-r ${c.color}`} />
-              <div className="p-4">
-                <div className="flex items-start justify-between mb-3">
-                  <div className="flex items-center gap-3">
-                    <div className="w-12 h-12 rounded-2xl flex items-center justify-center text-2xl" style={{ background: `${c.accent}22`, border: `1px solid ${c.accent}44` }}>{c.emoji}</div>
-                    <div>
-                      <h3 className="font-bold text-white text-sm leading-tight">{c.title}</h3>
-                      <p className="text-white/40 text-xs mt-0.5">{c.duration} · {c.lessons} уроков</p>
+        {loading ? Array(6).fill(0).map((_, i) => <Skeleton key={i} className="h-52" />) :
+          courses.map((c, i) => {
+            const accent = ACCENTS[i % ACCENTS.length];
+            const isGreen = i % 2 === 0;
+            const CourseIcon = COURSE_ICONS[i % COURSE_ICONS.length];
+            return (
+              <div key={c.id} className={`card-game rounded-2xl overflow-hidden hover-lift cursor-pointer animate-fade-in stagger-${Math.min(i+1,6)}`}>
+                <div className="h-1.5 w-full" style={{ background: `linear-gradient(90deg, ${accent}, ${isGreen ? BM : GM})` }} />
+                <div className="p-5">
+                  <div className="flex items-start justify-between mb-4">
+                    <div className="flex items-center gap-3">
+                      <div className="w-12 h-12 rounded-2xl flex items-center justify-center flex-shrink-0"
+                        style={{ background: `${accent}18`, border: `1px solid ${accent}30` }}>
+                        <CourseIcon className="w-6 h-6" style={{ color: accent }} />
+                      </div>
+                      <div>
+                        <h3 className="font-bold text-sm leading-tight" style={{ color: "#1a1008" }}>{c.title}</h3>
+                        <div className="flex items-center gap-1 mt-1 text-xs" style={{ color: BM }}>
+                          <ClockIcon className="w-3 h-3" /><span>{c.duration}</span>
+                          <span className="mx-1">·</span>
+                          <span>{c.lessons} уроков</span>
+                        </div>
+                      </div>
+                    </div>
+                    <div className="text-right flex-shrink-0 ml-2">
+                      <div className="text-xs font-bold mb-1" style={{ color: accent }}>+{c.xp} XP</div>
+                      <Tag accent={isGreen ? G : B}>{c.level}</Tag>
                     </div>
                   </div>
-                  <div className="text-right">
-                    <div className="text-xs font-bold" style={{ color: c.accent }}>+{c.xp} XP</div>
-                    <div className="badge-game mt-1 text-[10px]" style={{ background: `${c.accent}22`, color: c.accent, border: `1px solid ${c.accent}33` }}>{c.level}</div>
+                  <div className="flex gap-1.5 mb-4 flex-wrap">
+                    {c.tags.map(t => <Tag key={t} accent={accent}>{t}</Tag>)}
                   </div>
+                  <div className="space-y-1.5">
+                    <div className="flex justify-between text-xs" style={{ color: BM }}>
+                      <span>{c.done}/{c.lessons} уроков</span><span>{c.progress}%</span>
+                    </div>
+                    <XpBar progress={c.progress} green={isGreen} />
+                  </div>
+                  <button onClick={() => startLesson(c)} disabled={c.done >= c.lessons}
+                    className="mt-4 w-full py-2.5 rounded-xl text-sm font-semibold transition-all active:scale-95 disabled:opacity-60 flex items-center justify-center gap-2"
+                    style={c.progress >= 100
+                      ? { background: GL, color: G, border: `1px solid ${G}30` }
+                      : { background: accent, color: "#fff", boxShadow: `0 3px 12px ${accent}40` }}>
+                    {c.progress >= 100
+                      ? <><CheckIcon className="w-4 h-4" /> Пройден</>
+                      : c.progress > 0
+                        ? <><PlayIcon className="w-4 h-4" /> Продолжить</>
+                        : <><PlayIcon className="w-4 h-4" /> Начать курс</>}
+                  </button>
                 </div>
-                <div className="flex gap-1.5 mb-3">
-                  {c.tags.map(t => <span key={t} className="text-[10px] px-2 py-0.5 rounded-full bg-white/8 text-white/50 border border-white/10">{t}</span>)}
-                </div>
-                <div className="space-y-1">
-                  <div className="flex justify-between text-xs text-white/40"><span>{c.done}/{c.lessons} уроков</span><span>{c.progress}%</span></div>
-                  <XpBar progress={c.progress} color={c.accent} />
-                </div>
-                <button onClick={() => startLesson(c)}
-                  disabled={c.done >= c.lessons}
-                  className="mt-3 w-full py-2 rounded-xl text-sm font-semibold transition-all duration-200 hover:opacity-90 active:scale-95 disabled:opacity-60"
-                  style={{
-                    background: c.progress >= 100 ? `${c.accent}22` : `linear-gradient(135deg, ${c.accent}, ${c.accent}aa)`,
-                    color: c.progress >= 100 ? c.accent : '#fff',
-                    border: c.progress >= 100 ? `1px solid ${c.accent}44` : 'none',
-                  }}>
-                  {c.progress >= 100 ? "✓ Пройден" : c.progress > 0 ? "Продолжить →" : "Начать курс"}
-                </button>
               </div>
-            </div>
-          ))}
+            );
+          })}
       </div>
     </div>
   );
 }
 
 // ─── Tasks Tab ────────────────────────────────────────────────────────────────
+const TASK_ICONS = [SparklesIcon, NewspaperIcon, Squares2X2Icon, PlayIcon, ChartBarIcon];
+
 function TasksTab({ onXpGain }: { onXpGain: (xp: number, total: number) => void }) {
   const [tasks, setTasks] = useState<Task[]>([]);
   const [loading, setLoading] = useState(true);
@@ -236,55 +311,68 @@ function TasksTab({ onXpGain }: { onXpGain: (xp: number, total: number) => void 
 
   const active = tasks.filter(t => !t.completed);
   const done   = tasks.filter(t => t.completed);
-  const availableXp = active.reduce((s, t) => s + t.xp, 0);
 
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between animate-fade-in">
         <div>
-          <h2 className="text-2xl font-bold text-white">Задания</h2>
-          <p className="text-white/50 text-sm mt-0.5">{active.length} активных · {done.length} выполнено</p>
+          <h2 className="text-2xl font-bold" style={{ color: "#1a1008" }}>Задания</h2>
+          <p className="text-sm mt-0.5" style={{ color: BM }}>{active.length} активных · {done.length} выполнено</p>
         </div>
-        <div className="badge-game bg-neon-yellow/20 text-neon-yellow border border-neon-yellow/30">⚡ {availableXp} XP доступно</div>
+        <div className="badge-game flex items-center gap-1.5" style={{ background: BL, color: B, border: `1px solid ${B}30` }}>
+          <BoltIcon className="w-3 h-3" />{active.reduce((s, t) => s + t.xp, 0)} XP доступно
+        </div>
       </div>
       <div className="space-y-3">
         {loading ? Array(4).fill(0).map((_, i) => <Skeleton key={i} className="h-20" />) :
-          active.map((t, i) => (
-            <div key={t.id} className={`card-game rounded-2xl p-4 animate-fade-in stagger-${i+1} hover-lift`}>
-              <div className="flex items-center gap-3">
-                <div className="w-12 h-12 rounded-xl flex items-center justify-center text-2xl flex-shrink-0" style={{ background: `${t.color}22`, border: `1px solid ${t.color}44` }}>{t.emoji}</div>
-                <div className="flex-1 min-w-0">
-                  <h3 className="font-semibold text-white text-sm">{t.title}</h3>
-                  <div className="flex items-center gap-2 mt-1">
-                    <span className="text-[10px] text-white/40">⏰ {t.deadline}</span>
-                    <span className="badge-game text-[10px]" style={{ background: `${t.color}22`, color: t.color, border: `1px solid ${t.color}33` }}>{t.difficulty}</span>
+          active.map((t, i) => {
+            const accent = i % 2 === 0 ? G : B;
+            const accentL = i % 2 === 0 ? GL : BL;
+            const TaskIcon = TASK_ICONS[i % TASK_ICONS.length];
+            return (
+              <div key={t.id} className={`card-game rounded-2xl p-4 animate-fade-in stagger-${i+1} hover-lift`}>
+                <div className="flex items-center gap-3">
+                  <div className="w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0"
+                    style={{ background: `${accent}15`, border: `1px solid ${accent}25` }}>
+                    <TaskIcon className="w-6 h-6" style={{ color: accent }} />
                   </div>
+                  <div className="flex-1 min-w-0">
+                    <h3 className="font-semibold text-sm" style={{ color: "#1a1008" }}>{t.title}</h3>
+                    <div className="flex items-center gap-2 mt-1">
+                      <span className="flex items-center gap-1 text-[11px]" style={{ color: BM }}>
+                        <ClockIcon className="w-3 h-3" />{t.deadline}
+                      </span>
+                      <Tag accent={accent}>{t.difficulty}</Tag>
+                    </div>
+                  </div>
+                  <div className="text-right flex-shrink-0">
+                    <div className="font-bold text-sm" style={{ color: accent }}>+{t.xp}</div>
+                    <div className="text-[10px]" style={{ color: BM }}>XP</div>
+                  </div>
+                  <button onClick={() => complete(t)} disabled={completing === t.id}
+                    className="ml-1 w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 transition-all active:scale-90 hover:opacity-80 disabled:opacity-50"
+                    style={{ background: accentL, color: accent, border: `1px solid ${accent}30` }}>
+                    {completing === t.id
+                      ? <ClockIcon className="w-4 h-4 animate-spin" />
+                      : <CheckIcon className="w-5 h-5" />}
+                  </button>
                 </div>
-                <div className="text-right flex-shrink-0">
-                  <div className="font-bold text-sm" style={{ color: t.color }}>+{t.xp}</div>
-                  <div className="text-[10px] text-white/40">XP</div>
-                </div>
-                <button onClick={() => complete(t)} disabled={completing === t.id}
-                  className="ml-2 w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0 transition-all active:scale-90 hover:opacity-80 disabled:opacity-50"
-                  style={{ background: `${t.color}33`, color: t.color }}>
-                  {completing === t.id ? <span className="text-xs">⏳</span> : <Icon name="Check" size={16} />}
-                </button>
               </div>
-            </div>
-          ))}
+            );
+          })}
       </div>
       {done.length > 0 && (
         <div>
-          <p className="text-white/30 text-xs font-semibold uppercase tracking-widest mb-3">Выполнено</p>
+          <p className="text-xs font-semibold uppercase tracking-widest mb-3" style={{ color: BM, opacity: 0.6 }}>Выполнено</p>
           <div className="space-y-2">
             {done.map(t => (
               <div key={t.id} className="card-game rounded-2xl p-4 opacity-50">
                 <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-xl flex items-center justify-center text-xl flex-shrink-0 bg-white/5">{t.emoji}</div>
-                  <div className="flex-1"><h3 className="font-semibold text-white/70 text-sm line-through">{t.title}</h3></div>
-                  <div className="w-7 h-7 rounded-lg bg-neon-green/20 flex items-center justify-center">
-                    <Icon name="Check" size={14} className="text-neon-green" />
+                  <div className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0" style={{ background: STONE }}>
+                    <CheckCircleIcon className="w-5 h-5" style={{ color: G }} />
                   </div>
+                  <div className="flex-1"><h3 className="font-medium text-sm line-through" style={{ color: BM }}>{t.title}</h3></div>
+                  <CheckCircleIcon className="w-5 h-5 flex-shrink-0" style={{ color: G }} />
                 </div>
               </div>
             ))}
@@ -305,24 +393,29 @@ function RatingTab() {
   }, []);
 
   const top3 = rating.length >= 3 ? [rating[1], rating[0], rating[2]] : rating.slice(0, 3);
+  const podiumBg    = [BL, GL, BL];
+  const podiumColor = [B,  G,  B ];
 
   return (
     <div className="space-y-6">
       <div className="animate-fade-in">
-        <h2 className="text-2xl font-bold text-white">Рейтинг</h2>
-        <p className="text-white/50 text-sm mt-0.5">Топ игроков по XP</p>
+        <h2 className="text-2xl font-bold" style={{ color: "#1a1008" }}>Рейтинг</h2>
+        <p className="text-sm mt-0.5" style={{ color: BM }}>Топ игроков по XP</p>
       </div>
       {loading ? <Skeleton className="h-40" /> : top3.length >= 2 && (
         <div className="grid grid-cols-3 gap-3 animate-fade-in stagger-1">
           {top3.map((p, i) => {
             const isCenter = i === 1;
             return (
-              <div key={p.rank} className={`card-game rounded-2xl p-4 text-center flex flex-col items-center gap-2 ${isCenter ? "neon-glow-yellow" : ""}`}
-                style={isCenter ? { border: "1px solid #facc1544" } : {}}>
-                <div className="text-3xl">{p.badge}</div>
-                <div className={`text-4xl ${isCenter ? "animate-float" : ""}`}>{p.avatar}</div>
-                <div className="font-bold text-white text-xs truncate w-full text-center">{p.name}</div>
-                <div className="font-mono text-xs" style={{ color: isCenter ? "#facc15" : "#a855f7" }}>{p.xp.toLocaleString()} XP</div>
+              <div key={p.rank} className={`card-game rounded-2xl p-4 text-center flex flex-col items-center gap-2 ${isCenter ? "shadow-green" : ""}`}
+                style={{ background: podiumBg[i], border: `1px solid ${podiumColor[i]}30` }}>
+                <TrophyIcon className="w-7 h-7" style={{ color: podiumColor[i] }} />
+                <div className={`w-12 h-12 rounded-full flex items-center justify-center ${isCenter ? "pulse-ring" : ""}`}
+                  style={{ background: `${podiumColor[i]}20`, border: `2px solid ${podiumColor[i]}50` }}>
+                  <UserCircleIcon className="w-8 h-8" style={{ color: podiumColor[i] }} />
+                </div>
+                <div className="font-bold text-xs truncate w-full text-center" style={{ color: "#1a1008" }}>{p.name}</div>
+                <div className="font-bold text-xs" style={{ color: podiumColor[i] }}>{p.xp.toLocaleString()} XP</div>
               </div>
             );
           })}
@@ -331,19 +424,23 @@ function RatingTab() {
       <div className="space-y-2">
         {loading ? Array(5).fill(0).map((_, i) => <Skeleton key={i} className="h-16" />) :
           rating.map((p, i) => (
-            <div key={p.rank} className={`card-game rounded-2xl px-4 py-3 flex items-center gap-3 animate-fade-in stagger-${Math.min(i+1,6)} ${p.isMe ? "border border-neon-purple/40 neon-glow-purple" : ""}`}>
-              <div className={`w-8 text-center font-bold text-sm ${p.rank <= 3 ? "text-neon-yellow" : "text-white/40"}`}>#{p.rank}</div>
-              <div className="text-2xl">{p.avatar}</div>
+            <div key={p.rank} className={`card-game rounded-2xl px-4 py-3 flex items-center gap-3 animate-fade-in stagger-${Math.min(i+1,6)}`}
+              style={p.isMe ? { border: `1px solid ${G}40`, background: GL } : {}}>
+              <div className="w-8 text-center font-bold text-sm flex-shrink-0" style={{ color: p.rank <= 3 ? B : "#9ca3af" }}>#{p.rank}</div>
+              <div className="w-9 h-9 rounded-full flex items-center justify-center flex-shrink-0"
+                style={{ background: p.isMe ? GL : STONE, border: `1.5px solid ${p.isMe ? G : "#e8e0d6"}` }}>
+                <UserCircleIcon className="w-6 h-6" style={{ color: p.isMe ? G : BM }} />
+              </div>
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-2">
-                  <span className={`font-semibold text-sm ${p.isMe ? "text-neon-purple" : "text-white"}`}>{p.name}</span>
-                  {p.isMe && <span className="badge-game text-[9px] bg-neon-purple/20 text-neon-purple border border-neon-purple/30">Это ты</span>}
+                  <span className="font-semibold text-sm" style={{ color: p.isMe ? G : "#1a1008" }}>{p.name}</span>
+                  {p.isMe && <Tag accent={G}>Это ты</Tag>}
                 </div>
-                <div className="text-white/40 text-xs">Уровень {p.level}</div>
+                <div className="text-xs" style={{ color: BM }}>Уровень {p.level}</div>
               </div>
-              <div className="text-right">
-                <div className="font-bold text-sm text-white">{p.xp.toLocaleString()}</div>
-                <div className="text-[10px] text-white/40">XP</div>
+              <div className="text-right flex-shrink-0">
+                <div className="font-bold text-sm" style={{ color: "#1a1008" }}>{p.xp.toLocaleString()}</div>
+                <div className="text-[10px]" style={{ color: BM }}>XP</div>
               </div>
             </div>
           ))}
@@ -353,6 +450,8 @@ function RatingTab() {
 }
 
 // ─── Achievements Tab ─────────────────────────────────────────────────────────
+const ACHIEVEMENT_ICONS = [StarIcon, BoltIcon, TrophyIcon, SparklesIcon, ChartBarIcon, HeartIcon, FireIcon, AcademicCapIcon];
+
 function AchievementsTab() {
   const [achievements, setAchievements] = useState<Achievement[]>([]);
   const [loading, setLoading] = useState(true);
@@ -366,35 +465,41 @@ function AchievementsTab() {
   return (
     <div className="space-y-6">
       <div className="animate-fade-in">
-        <h2 className="text-2xl font-bold text-white">Достижения</h2>
-        <p className="text-white/50 text-sm mt-0.5">{unlocked.length}/{achievements.length} разблокировано</p>
+        <h2 className="text-2xl font-bold" style={{ color: "#1a1008" }}>Достижения</h2>
+        <p className="text-sm mt-0.5" style={{ color: BM }}>{unlocked.length}/{achievements.length} разблокировано</p>
       </div>
       {!loading && achievements.length > 0 && (
         <div className="card-game rounded-2xl p-4 animate-fade-in stagger-1">
           <div className="flex justify-between text-sm mb-2">
-            <span className="text-white/60">Прогресс коллекции</span>
-            <span className="text-neon-purple font-bold">{unlocked.length}/{achievements.length}</span>
+            <span style={{ color: BM }}>Прогресс коллекции</span>
+            <span className="font-bold" style={{ color: G }}>{unlocked.length}/{achievements.length}</span>
           </div>
           <XpBar progress={(unlocked.length / achievements.length) * 100} />
         </div>
       )}
       <div className="grid grid-cols-2 gap-3">
         {loading ? Array(8).fill(0).map((_, i) => <Skeleton key={i} className="h-36" />) :
-          achievements.map((a, i) => (
-            <div key={a.id} className={`card-game rounded-2xl p-4 animate-fade-in stagger-${Math.min(i+1,6)} ${a.unlocked ? "hover-lift cursor-pointer" : "opacity-40"}`}
-              style={a.unlocked ? { border: `1px solid ${a.color}33` } : {}}>
-              <div className="flex items-start justify-between mb-2">
-                <div className="w-12 h-12 rounded-2xl flex items-center justify-center text-2xl"
-                  style={a.unlocked ? { background: `${a.color}22`, border: `1px solid ${a.color}33` } : { background: "rgba(255,255,255,0.05)" }}>
-                  {a.unlocked ? a.emoji : "🔒"}
+          achievements.map((a, i) => {
+            const rm = rarityMap[a.rarity] ?? rarityMap["Обычное"];
+            const AchIcon = ACHIEVEMENT_ICONS[i % ACHIEVEMENT_ICONS.length];
+            return (
+              <div key={a.id} className={`card-game rounded-2xl p-4 animate-fade-in stagger-${Math.min(i+1,6)} ${a.unlocked ? "hover-lift cursor-pointer" : "opacity-40"}`}
+                style={a.unlocked ? { border: `1px solid ${rm.border}` } : {}}>
+                <div className="flex items-start justify-between mb-3">
+                  <div className="w-12 h-12 rounded-2xl flex items-center justify-center"
+                    style={a.unlocked ? { background: rm.bg, border: `1px solid ${rm.border}` } : { background: STONE }}>
+                    {a.unlocked
+                      ? <AchIcon className="w-6 h-6" style={{ color: rm.text }} />
+                      : <LockClosedIcon className="w-5 h-5" style={{ color: BM }} />}
+                  </div>
+                  <span className="badge-game text-[9px]" style={{ background: rm.bg, color: rm.text, border: `1px solid ${rm.border}` }}>{a.rarity}</span>
                 </div>
-                <span className="badge-game text-[9px]" style={{ background: `${rarityColor[a.rarity]}22`, color: rarityColor[a.rarity], border: `1px solid ${rarityColor[a.rarity]}33` }}>{a.rarity}</span>
+                <h3 className="font-bold text-sm" style={{ color: "#1a1008" }}>{a.title}</h3>
+                <p className="text-xs mt-0.5 leading-relaxed" style={{ color: BM }}>{a.desc}</p>
+                <div className="mt-2 font-bold text-xs" style={{ color: a.unlocked ? G : "#9ca3af" }}>+{a.xp} XP</div>
               </div>
-              <h3 className="font-bold text-white text-sm">{a.title}</h3>
-              <p className="text-white/40 text-xs mt-0.5 leading-relaxed">{a.desc}</p>
-              <div className="mt-2 font-bold text-xs" style={{ color: a.unlocked ? a.color : "#4b5563" }}>+{a.xp} XP</div>
-            </div>
-          ))}
+            );
+          })}
       </div>
     </div>
   );
@@ -416,9 +521,8 @@ function CommunityTab() {
 
   const toggleLike = async (post: Post) => {
     const data = await api({ action: "like_post", post_id: post.id });
-    if (data.liked !== undefined) {
+    if (data.liked !== undefined)
       setPosts(ps => ps.map(p => p.id === post.id ? { ...p, likes: data.likes, liked_by_me: data.liked } : p));
-    }
   };
 
   const submitPost = async (e: React.FormEvent) => {
@@ -430,70 +534,88 @@ function CommunityTab() {
     if (data.ok) { setNewPost({ content: "", tag: "" }); setShowForm(false); load(); }
   };
 
+  const POST_COLORS = [G, B, GM, BM, "#4a7c59", "#7a4f2d"];
+  const POST_BG     = [GL, BL, GL, BL, GL, BL];
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between animate-fade-in">
         <div>
-          <h2 className="text-2xl font-bold text-white">Сообщество</h2>
-          <p className="text-white/50 text-sm mt-0.5">Делитесь опытом с ИИ</p>
+          <h2 className="text-2xl font-bold" style={{ color: "#1a1008" }}>Сообщество</h2>
+          <p className="text-sm mt-0.5" style={{ color: BM }}>Делитесь опытом с ИИ</p>
         </div>
         <button onClick={() => setShowForm(v => !v)}
-          className="flex items-center gap-2 px-4 py-2 rounded-xl bg-neon-purple text-white text-sm font-semibold hover:opacity-90 transition-opacity active:scale-95">
-          <Icon name={showForm ? "X" : "Plus"} size={14} />
+          className="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold transition-all active:scale-95 text-white"
+          style={{ background: showForm ? B : G }}>
+          {showForm ? <XMarkIcon className="w-4 h-4" /> : <PlusIcon className="w-4 h-4" />}
           {showForm ? "Отмена" : "Пост"}
         </button>
       </div>
       {showForm && (
-        <form onSubmit={submitPost} className="card-game rounded-2xl p-4 animate-fade-in space-y-3" style={{ border: "1px solid rgba(168,85,247,0.25)" }}>
+        <form onSubmit={submitPost} className="card-game rounded-2xl p-4 animate-fade-in space-y-3" style={{ border: `1px solid ${G}30` }}>
           <textarea value={newPost.content} onChange={e => setNewPost(n => ({ ...n, content: e.target.value }))}
-            placeholder="Поделитесь своим опытом с ИИ-инструментами..."
-            rows={3}
-            className="w-full px-4 py-3 rounded-xl bg-white/8 border border-white/10 text-white placeholder-white/25 text-sm outline-none focus:border-neon-purple/50 transition-colors resize-none" />
+            placeholder="Поделитесь своим опытом с ИИ-инструментами..." rows={3}
+            className="w-full px-4 py-3 rounded-xl text-sm outline-none resize-none"
+            style={{ background: STONE, border: "1px solid #e8e0d6", color: "#2d2015" }} />
           <input value={newPost.tag} onChange={e => setNewPost(n => ({ ...n, tag: e.target.value }))}
-            placeholder="Тег (например: ChatGPT, Midjourney)"
-            className="w-full px-4 py-3 rounded-xl bg-white/8 border border-white/10 text-white placeholder-white/25 text-sm outline-none focus:border-neon-purple/50 transition-colors" />
+            placeholder="Тег (ChatGPT, Midjourney...)"
+            className="w-full px-4 py-3 rounded-xl text-sm outline-none"
+            style={{ background: STONE, border: "1px solid #e8e0d6", color: "#2d2015" }} />
           <button type="submit" disabled={posting || !newPost.content.trim()}
-            className="w-full py-2.5 rounded-xl font-semibold text-white text-sm disabled:opacity-50 active:scale-95 transition-all"
-            style={{ background: "linear-gradient(135deg, #a855f7, #7c3aed)" }}>
-            {posting ? "⏳ Публикация..." : "🚀 Опубликовать"}
+            className="w-full py-2.5 rounded-xl font-semibold text-white text-sm disabled:opacity-50 active:scale-95 transition-all flex items-center justify-center gap-2"
+            style={{ background: G }}>
+            {posting
+              ? <><ClockIcon className="w-4 h-4 animate-spin" /> Публикация...</>
+              : <><SparklesIcon className="w-4 h-4" /> Опубликовать</>}
           </button>
         </form>
       )}
       <div className="space-y-4">
         {loading ? Array(3).fill(0).map((_, i) => <Skeleton key={i} className="h-32" />) :
-          posts.map((p, i) => (
-            <div key={p.id} className={`card-game rounded-2xl p-4 animate-fade-in stagger-${Math.min(i+1,6)} hover-lift`}>
-              <div className="flex items-start gap-3">
-                <div className="w-10 h-10 rounded-xl flex items-center justify-center text-xl flex-shrink-0" style={{ background: `${p.color}22`, border: `1px solid ${p.color}33` }}>{p.avatar}</div>
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-2 flex-wrap">
-                    <span className="font-bold text-white text-sm">{p.author}</span>
-                    <span className="badge-game text-[10px]" style={{ background: `${p.color}22`, color: p.color, border: `1px solid ${p.color}33` }}>{p.tag}</span>
-                    <span className="text-white/30 text-xs ml-auto">{p.time}</span>
+          posts.map((p, i) => {
+            const color = POST_COLORS[i % POST_COLORS.length];
+            const bg    = POST_BG[i % POST_BG.length];
+            return (
+              <div key={p.id} className={`card-game rounded-2xl p-4 animate-fade-in stagger-${Math.min(i+1,6)} hover-lift`}>
+                <div className="flex items-start gap-3">
+                  <div className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0"
+                    style={{ background: bg, border: `1px solid ${color}25` }}>
+                    <UserCircleIcon className="w-6 h-6" style={{ color }} />
                   </div>
-                  <p className="text-white/70 text-sm mt-2 leading-relaxed">{p.content}</p>
-                  <div className="flex items-center gap-4 mt-3">
-                    <button onClick={() => toggleLike(p)}
-                      className={`flex items-center gap-1.5 text-xs transition-all active:scale-90 ${p.liked_by_me ? "text-neon-pink" : "text-white/40 hover:text-white/70"}`}>
-                      <Icon name="Heart" size={14} /><span>{p.likes}</span>
-                    </button>
-                    <button className="flex items-center gap-1.5 text-xs text-white/40 hover:text-white/70 transition-colors">
-                      <Icon name="MessageCircle" size={14} /><span>{p.comments}</span>
-                    </button>
-                    <button className="flex items-center gap-1.5 text-xs text-white/40 hover:text-white/70 transition-colors ml-auto">
-                      <Icon name="Share2" size={14} />
-                    </button>
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <span className="font-bold text-sm" style={{ color: "#1a1008" }}>{p.author}</span>
+                      <Tag accent={color}>{p.tag}</Tag>
+                      <span className="text-xs ml-auto" style={{ color: BM, opacity: 0.6 }}>{p.time}</span>
+                    </div>
+                    <p className="text-sm mt-2 leading-relaxed" style={{ color: "#3d2e1e" }}>{p.content}</p>
+                    <div className="flex items-center gap-4 mt-3">
+                      <button onClick={() => toggleLike(p)}
+                        className="flex items-center gap-1.5 text-xs transition-all active:scale-90"
+                        style={{ color: p.liked_by_me ? B : BM }}>
+                        <HeartIcon className="w-4 h-4" style={{ opacity: p.liked_by_me ? 1 : 0.5 }} />
+                        <span>{p.likes}</span>
+                      </button>
+                      <button className="flex items-center gap-1.5 text-xs" style={{ color: BM }}>
+                        <ChatBubbleOvalLeftIcon className="w-4 h-4 opacity-50" /><span>{p.comments}</span>
+                      </button>
+                      <button className="flex items-center gap-1.5 text-xs ml-auto" style={{ color: BM }}>
+                        <ShareIcon className="w-4 h-4 opacity-50" />
+                      </button>
+                    </div>
                   </div>
                 </div>
               </div>
-            </div>
-          ))}
+            );
+          })}
       </div>
     </div>
   );
 }
 
 // ─── Profile Tab ──────────────────────────────────────────────────────────────
+const UNLOCKED_ICONS = [StarIcon, BoltIcon, TrophyIcon, FireIcon, SparklesIcon, AcademicCapIcon];
+
 function ProfileTab({ user, onLogout, achievements }: { user: User; onLogout: () => void; achievements: Achievement[] }) {
   const nextLevelXp = (user.level + 1) * 300;
   const xpToNext = Math.max(0, nextLevelXp - user.xp);
@@ -501,72 +623,97 @@ function ProfileTab({ user, onLogout, achievements }: { user: User; onLogout: ()
 
   return (
     <div className="space-y-5">
-      <div className="card-game rounded-3xl p-6 animate-fade-in" style={{ background: "linear-gradient(135deg, rgba(168,85,247,0.15), rgba(34,211,238,0.08))", border: "1px solid rgba(168,85,247,0.25)" }}>
+      <div className="card-game-green rounded-3xl p-6 animate-fade-in">
         <div className="flex items-center gap-4">
           <div className="relative">
-            <div className="w-20 h-20 rounded-2xl flex items-center justify-center text-4xl pulse-ring" style={{ background: "rgba(168,85,247,0.2)", border: "2px solid rgba(168,85,247,0.5)" }}>{user.avatar}</div>
-            <div className="absolute -bottom-1 -right-1 w-7 h-7 rounded-lg bg-neon-yellow flex items-center justify-center text-xs font-black text-black">{user.level}</div>
+            <div className="w-20 h-20 rounded-2xl flex items-center justify-center pulse-ring"
+              style={{ background: GL, border: `2px solid ${G}60` }}>
+              <UserCircleIcon className="w-12 h-12" style={{ color: G }} />
+            </div>
+            <div className="absolute -bottom-1 -right-1 w-7 h-7 rounded-lg flex items-center justify-center text-xs font-black text-white" style={{ background: B }}>
+              {user.level}
+            </div>
           </div>
           <div className="flex-1">
-            <h2 className="text-xl font-black text-white">{user.username}</h2>
-            <p className="text-white/50 text-sm">{user.email}</p>
+            <h2 className="text-xl font-black" style={{ color: "#1a1008" }}>{user.username}</h2>
+            <p className="text-sm" style={{ color: BM }}>{user.email}</p>
             <div className="flex items-center gap-3 mt-2">
-              <span className="text-neon-purple font-bold">{user.xp.toLocaleString()} XP</span>
-              {user.streak > 0 && <><span className="text-white/30">·</span><span className="text-neon-orange text-sm">🔥 {user.streak} дней</span></>}
+              <span className="font-bold flex items-center gap-1" style={{ color: G }}>
+                <BoltIcon className="w-4 h-4" />{user.xp.toLocaleString()} XP
+              </span>
+              {user.streak > 0 && (
+                <><span style={{ color: "#d0c0b0" }}>·</span>
+                  <span className="flex items-center gap-1 text-sm" style={{ color: B }}>
+                    <FireIcon className="w-4 h-4" />{user.streak} дней
+                  </span></>
+              )}
             </div>
           </div>
         </div>
         <div className="mt-4">
-          <div className="flex justify-between text-xs text-white/50 mb-1.5">
+          <div className="flex justify-between text-xs mb-1.5" style={{ color: BM }}>
             <span>Уровень {user.level}</span>
-            <span>До {user.level + 1} уровня: {xpToNext} XP</span>
+            <span>До {user.level + 1}: {xpToNext} XP</span>
           </div>
           <XpBar progress={Math.min(100, (user.xp / nextLevelXp) * 100)} />
         </div>
       </div>
+
       <div className="grid grid-cols-3 gap-3 animate-fade-in stagger-1">
         {[
-          { value: String(unlocked.length), sub: "достижений", emoji: "🏅" },
-          { value: String(user.xp), sub: "очков XP", emoji: "⚡" },
-          { value: String(user.streak), sub: "дней 🔥", emoji: "🔥" },
+          { value: String(unlocked.length), sub: "достижений", Icon: StarIcon, bg: GL, color: G },
+          { value: String(user.xp),          sub: "очков XP",  Icon: BoltIcon, bg: GL, color: G },
+          { value: String(user.streak),       sub: "дней подряд", Icon: FireIcon, bg: BL, color: B },
         ].map((s, i) => (
           <div key={i} className="card-game rounded-2xl p-4 text-center">
-            <div className="text-2xl mb-1">{s.emoji}</div>
-            <div className="text-xl font-black text-white">{s.value}</div>
-            <div className="text-[11px] text-white/40">{s.sub}</div>
+            <div className="w-8 h-8 rounded-lg flex items-center justify-center mx-auto mb-2" style={{ background: s.bg }}>
+              <s.Icon className="w-4 h-4" style={{ color: s.color }} />
+            </div>
+            <div className="text-lg font-black" style={{ color: "#1a1008" }}>{s.value}</div>
+            <div className="text-[11px]" style={{ color: BM }}>{s.sub}</div>
           </div>
         ))}
       </div>
+
       {unlocked.length > 0 && (
         <div className="animate-fade-in stagger-2">
-          <p className="text-white/30 text-xs font-semibold uppercase tracking-widest mb-3">Достижения</p>
+          <p className="text-xs font-semibold uppercase tracking-widest mb-3" style={{ color: BM, opacity: 0.6 }}>Достижения</p>
           <div className="flex gap-3 flex-wrap">
-            {unlocked.map(a => (
-              <div key={a.id} className="w-14 h-14 rounded-2xl flex items-center justify-center text-2xl hover-lift cursor-pointer" style={{ background: `${a.color}22`, border: `1px solid ${a.color}44` }} title={a.title}>{a.emoji}</div>
-            ))}
+            {unlocked.map((a, i) => {
+              const AIcon = UNLOCKED_ICONS[i % UNLOCKED_ICONS.length];
+              const rm = rarityMap[a.rarity] ?? rarityMap["Обычное"];
+              return (
+                <div key={a.id} className="w-14 h-14 rounded-2xl flex items-center justify-center hover-lift cursor-pointer"
+                  style={{ background: rm.bg, border: `1px solid ${rm.border}` }} title={a.title}>
+                  <AIcon className="w-6 h-6" style={{ color: rm.text }} />
+                </div>
+              );
+            })}
           </div>
         </div>
       )}
+
       <div className="space-y-2 animate-fade-in stagger-3">
-        <p className="text-white/30 text-xs font-semibold uppercase tracking-widest mb-3">Настройки</p>
+        <p className="text-xs font-semibold uppercase tracking-widest mb-3" style={{ color: BM, opacity: 0.6 }}>Настройки</p>
         {[
-          { label: "Редактировать профиль", icon: "Edit3", color: "#a855f7" },
-          { label: "Настройки уведомлений", icon: "Bell",  color: "#22d3ee" },
-          { label: "Поделиться профилем",   icon: "Share2", color: "#4ade80" },
+          { label: "Редактировать профиль",  Icon: PencilIcon,                color: G, bg: GL },
+          { label: "Настройки уведомлений",  Icon: BellIcon,                  color: B, bg: BL },
+          { label: "Поделиться профилем",    Icon: ShareIcon,                 color: GM, bg: GL },
+          { label: "Идентификация",          Icon: IdentificationIcon,        color: BM, bg: BL },
         ].map((item, i) => (
           <button key={i} className="card-game w-full rounded-2xl px-4 py-3 flex items-center gap-3 text-left hover-lift">
-            <div className="w-9 h-9 rounded-xl flex items-center justify-center" style={{ background: `${item.color}22` }}>
-              <Icon name={item.icon} size={16} style={{ color: item.color }} />
+            <div className="w-9 h-9 rounded-xl flex items-center justify-center" style={{ background: item.bg }}>
+              <item.Icon className="w-4 h-4" style={{ color: item.color }} />
             </div>
-            <span className="text-white/80 text-sm font-medium flex-1">{item.label}</span>
-            <Icon name="ChevronRight" size={14} className="text-white/30" />
+            <span className="text-sm font-medium flex-1" style={{ color: "#2d2015" }}>{item.label}</span>
+            <ChevronRightIcon className="w-4 h-4" style={{ color: BM }} />
           </button>
         ))}
         <button onClick={onLogout} className="card-game w-full rounded-2xl px-4 py-3 flex items-center gap-3 text-left hover-lift">
-          <div className="w-9 h-9 rounded-xl flex items-center justify-center bg-red-500/15">
-            <Icon name="LogOut" size={16} className="text-red-400" />
+          <div className="w-9 h-9 rounded-xl flex items-center justify-center" style={{ background: "#fef2f2" }}>
+            <ArrowRightOnRectangleIcon className="w-4 h-4 text-red-500" />
           </div>
-          <span className="text-red-400 text-sm font-medium flex-1">Выйти из аккаунта</span>
+          <span className="text-sm font-medium flex-1 text-red-500">Выйти из аккаунта</span>
         </button>
       </div>
     </div>
@@ -578,9 +725,9 @@ function XpToast({ xp, onDone }: { xp: number; onDone: () => void }) {
   useEffect(() => { const t = setTimeout(onDone, 2500); return () => clearTimeout(t); }, [onDone]);
   return (
     <div className="fixed top-6 left-1/2 -translate-x-1/2 z-50 animate-scale-in">
-      <div className="px-6 py-3 rounded-2xl font-bold text-white text-sm flex items-center gap-2 neon-glow-yellow"
-        style={{ background: "linear-gradient(135deg, #facc15, #f59e0b)", color: "#000" }}>
-        ⚡ +{xp} XP получено!
+      <div className="px-5 py-3 rounded-2xl font-bold text-sm flex items-center gap-2 text-white shadow-green"
+        style={{ background: G, boxShadow: `0 4px 20px ${G}50` }}>
+        <BoltIcon className="w-4 h-4" />+{xp} XP получено!
       </div>
     </div>
   );
@@ -605,7 +752,6 @@ export default function App() {
 
   useEffect(() => { checkSession(); }, [checkSession]);
 
-  // Подгружаем достижения один раз для профиля
   const achievementsLoaded = useRef(false);
   useEffect(() => {
     if (user && !achievementsLoaded.current) {
@@ -629,8 +775,13 @@ export default function App() {
 
   if (!authChecked) {
     return (
-      <div className="min-h-screen bg-background grid-bg flex items-center justify-center">
-        <div className="text-center"><div className="text-5xl animate-float mb-4">🧠</div><div className="text-white/40 text-sm font-rubik">Загрузка...</div></div>
+      <div className="min-h-screen grid-bg flex items-center justify-center">
+        <div className="text-center">
+          <div className="w-16 h-16 rounded-2xl flex items-center justify-center mx-auto mb-4 animate-pulse" style={{ background: GL }}>
+            <AcademicCapIcon className="w-9 h-9" style={{ color: G }} />
+          </div>
+          <div className="text-sm font-rubik" style={{ color: BM }}>Загрузка...</div>
+        </div>
       </div>
     );
   }
@@ -649,37 +800,45 @@ export default function App() {
   };
 
   return (
-    <div className="min-h-screen bg-background grid-bg font-rubik">
+    <div className="min-h-screen grid-bg font-rubik">
       {xpToast !== null && <XpToast xp={xpToast} onDone={() => setXpToast(null)} />}
       <div className="max-w-2xl mx-auto px-4 pb-28 pt-6">
         <div className="flex items-center justify-between mb-6 animate-fade-in">
-          <div className="flex items-center gap-2">
-            <div className="w-9 h-9 rounded-xl bg-neon-purple/20 border border-neon-purple/40 flex items-center justify-center text-lg">🧠</div>
-            <span className="font-mono-rubik text-white text-lg tracking-tight">AIQuest</span>
+          <div className="flex items-center gap-2.5">
+            <div className="w-9 h-9 rounded-xl flex items-center justify-center" style={{ background: G }}>
+              <AcademicCapIcon className="w-5 h-5 text-white" />
+            </div>
+            <span className="font-mono-rubik text-lg tracking-tight" style={{ color: G }}>AIQuest</span>
           </div>
           <div className="flex items-center gap-2">
-            <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-neon-yellow/15 border border-neon-yellow/30">
-              <span className="text-sm">⚡</span>
-              <span className="font-bold text-neon-yellow text-sm">{user.xp.toLocaleString()} XP</span>
+            <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl" style={{ background: GL, border: `1px solid ${G}30` }}>
+              <BoltIcon className="w-4 h-4" style={{ color: G }} />
+              <span className="font-bold text-sm" style={{ color: G }}>{user.xp.toLocaleString()} XP</span>
             </div>
-            <div className="w-9 h-9 rounded-xl bg-white/10 border border-white/15 flex items-center justify-center text-lg cursor-pointer hover:scale-110 transition-transform"
-              onClick={() => setTab("profile")}>{user.avatar}</div>
+            <button onClick={() => setTab("profile")}
+              className="w-9 h-9 rounded-xl flex items-center justify-center transition-transform hover:scale-110"
+              style={{ background: BL, border: `1px solid ${B}30` }}>
+              <UserCircleIcon className="w-5 h-5" style={{ color: B }} />
+            </button>
           </div>
         </div>
         <div key={tab}>{renderTab()}</div>
       </div>
+
       <div className="fixed bottom-0 left-0 right-0 z-50">
         <div className="max-w-2xl mx-auto px-4 pb-4">
           <div className="rounded-2xl px-2 py-2 flex items-center justify-around"
-            style={{ background: "rgba(10,8,20,0.96)", backdropFilter: "blur(20px)", border: "1px solid rgba(255,255,255,0.1)" }}>
+            style={{ background: "rgba(255,255,255,0.97)", backdropFilter: "blur(16px)", border: "1px solid #e8e0d6", boxShadow: "0 -2px 16px rgba(0,0,0,0.08)" }}>
             {NAV_ITEMS.map(item => {
               const active = tab === item.id;
               return (
                 <button key={item.id} onClick={() => setTab(item.id)}
                   className="flex flex-col items-center gap-0.5 px-2 py-1.5 rounded-xl transition-all duration-200 min-w-[48px]"
-                  style={active ? { background: "rgba(168,85,247,0.2)" } : {}}>
-                  <span className={`text-lg transition-transform duration-200 ${active ? "scale-110" : ""}`}>{item.emoji}</span>
-                  <span className={`text-[10px] font-semibold transition-colors duration-200 ${active ? "text-neon-purple" : "text-white/35"}`}>{item.label}</span>
+                  style={active ? { background: GL } : {}}>
+                  <item.Icon className={`w-5 h-5 transition-all duration-200 ${active ? "scale-110" : ""}`}
+                    style={{ color: active ? G : "#a0917e" }} />
+                  <span className="text-[10px] font-semibold transition-colors duration-200"
+                    style={{ color: active ? G : "#a0917e" }}>{item.label}</span>
                 </button>
               );
             })}

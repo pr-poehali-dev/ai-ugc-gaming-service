@@ -54,13 +54,19 @@ export default {
 					DEFAULT: 'hsl(var(--card))',
 					foreground: 'hsl(var(--card-foreground))'
 				},
-				neon: {
-					purple: '#a855f7',
-					cyan: '#22d3ee',
-					yellow: '#facc15',
-					pink: '#f472b6',
-					green: '#4ade80',
-					orange: '#fb923c',
+				green: {
+					DEFAULT: '#2d7a4f',
+					light: '#e8f5ee',
+					mid: '#3d9962',
+				},
+				brown: {
+					DEFAULT: '#8b5e3c',
+					light: '#f5ede4',
+					mid: '#a67048',
+				},
+				stone: {
+					skin: '#f5f1ec',
+					border: '#e8e0d6',
 				}
 			},
 			borderRadius: {

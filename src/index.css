@@ -4,51 +4,57 @@
 
 @layer base {
   :root {
-    --background: 230 25% 8%;
-    --foreground: 220 20% 95%;
+    /* ── Светлая палитра: белый фон, зелёный + коричневый ── */
+    --background: 0 0% 98%;
+    --foreground: 30 15% 15%;
 
-    --card: 230 20% 12%;
-    --card-foreground: 220 20% 95%;
+    --card: 0 0% 100%;
+    --card-foreground: 30 15% 15%;
 
-    --popover: 230 20% 12%;
-    --popover-foreground: 220 20% 95%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 30 15% 15%;
 
-    --primary: 265 90% 65%;
+    /* Зелёный — основной акцент */
+    --primary: 152 55% 32%;
     --primary-foreground: 0 0% 100%;
 
-    --secondary: 230 20% 16%;
-    --secondary-foreground: 220 20% 95%;
+    /* Коричневый — второй акцент */
+    --secondary: 30 40% 92%;
+    --secondary-foreground: 30 35% 25%;
 
-    --muted: 230 20% 16%;
-    --muted-foreground: 220 15% 55%;
+    --muted: 30 20% 94%;
+    --muted-foreground: 30 10% 50%;
 
-    --accent: 175 80% 50%;
-    --accent-foreground: 230 25% 8%;
+    --accent: 152 45% 90%;
+    --accent-foreground: 152 55% 22%;
 
-    --destructive: 0 85% 60%;
+    --destructive: 0 72% 51%;
     --destructive-foreground: 0 0% 100%;
 
-    --border: 230 20% 20%;
-    --input: 230 20% 16%;
-    --ring: 265 90% 65%;
+    --border: 30 15% 88%;
+    --input: 30 15% 92%;
+    --ring: 152 55% 32%;
 
-    --radius: 1rem;
+    --radius: 0.875rem;
 
-    --neon-purple: #a855f7;
-    --neon-cyan: #22d3ee;
-    --neon-yellow: #facc15;
-    --neon-pink: #f472b6;
-    --neon-green: #4ade80;
-    --neon-orange: #fb923c;
+    /* Кастомные токены */
+    --green: #2d7a4f;
+    --green-light: #e8f5ee;
+    --green-mid: #3d9962;
+    --brown: #8b5e3c;
+    --brown-light: #f5ede4;
+    --brown-mid: #a67048;
+    --stone: #f5f1ec;
+    --stone-border: #e8e0d6;
 
-    --sidebar-background: 230 25% 8%;
-    --sidebar-foreground: 220 20% 95%;
-    --sidebar-primary: 265 90% 65%;
+    --sidebar-background: 0 0% 98%;
+    --sidebar-foreground: 30 15% 15%;
+    --sidebar-primary: 152 55% 32%;
     --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 230 20% 16%;
-    --sidebar-accent-foreground: 220 20% 95%;
-    --sidebar-border: 230 20% 20%;
-    --sidebar-ring: 265 90% 65%;
+    --sidebar-accent: 30 40% 92%;
+    --sidebar-accent-foreground: 30 35% 25%;
+    --sidebar-border: 30 15% 88%;
+    --sidebar-ring: 152 55% 32%;
   }
 }
 
@@ -56,7 +62,6 @@
   * {
     @apply border-border;
   }
-
   body {
     @apply bg-background text-foreground;
     font-family: "Rubik", sans-serif;
@@ -71,66 +76,61 @@
     font-family: "Rubik Mono One", monospace;
   }
 
-  .neon-glow-purple {
-    box-shadow:
-      0 0 20px rgba(168, 85, 247, 0.4),
-      0 0 40px rgba(168, 85, 247, 0.2);
-  }
-  .neon-glow-cyan {
-    box-shadow:
-      0 0 20px rgba(34, 211, 238, 0.4),
-      0 0 40px rgba(34, 211, 238, 0.2);
-  }
-  .neon-glow-yellow {
-    box-shadow:
-      0 0 20px rgba(250, 204, 21, 0.4),
-      0 0 40px rgba(250, 204, 21, 0.2);
-  }
-  .neon-glow-pink {
-    box-shadow:
-      0 0 20px rgba(244, 114, 182, 0.4),
-      0 0 40px rgba(244, 114, 182, 0.2);
-  }
-  .neon-glow-green {
-    box-shadow:
-      0 0 20px rgba(74, 222, 128, 0.4),
-      0 0 40px rgba(74, 222, 128, 0.2);
-  }
-
-  .text-glow-purple {
-    text-shadow: 0 0 20px rgba(168, 85, 247, 0.8);
-  }
-  .text-glow-cyan {
-    text-shadow: 0 0 20px rgba(34, 211, 238, 0.8);
-  }
-  .text-glow-yellow {
-    text-shadow: 0 0 20px rgba(250, 204, 21, 0.8);
-  }
-
+  /* Cards */
   .card-game {
-    background: linear-gradient(
-      135deg,
-      rgba(255, 255, 255, 0.05) 0%,
-      rgba(255, 255, 255, 0.02) 100%
-    );
-    border: 1px solid rgba(255, 255, 255, 0.08);
-    backdrop-filter: blur(10px);
+    background: #ffffff;
+    border: 1px solid var(--stone-border);
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.06);
+  }
+  .card-game-brown {
+    background: var(--brown-light);
+    border: 1px solid #dbc9b4;
+  }
+  .card-game-green {
+    background: var(--green-light);
+    border: 1px solid #bcdece;
   }
 
+  /* Grid texture — тихий, под светлый фон */
   .grid-bg {
+    background-color: #f8f5f0;
     background-image:
-      linear-gradient(rgba(168, 85, 247, 0.06) 1px, transparent 1px),
-      linear-gradient(90deg, rgba(168, 85, 247, 0.06) 1px, transparent 1px);
-    background-size: 40px 40px;
+      linear-gradient(rgba(45, 122, 79, 0.05) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(45, 122, 79, 0.05) 1px, transparent 1px);
+    background-size: 36px 36px;
   }
 
+  /* Badges */
+  .badge-game {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 2px 10px;
+    border-radius: 999px;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+  }
+
+  /* Interactions */
+  .hover-lift {
+    transition:
+      transform 0.18s ease,
+      box-shadow 0.18s ease;
+  }
+  .hover-lift:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.1);
+  }
+
+  /* Progress bar */
   .xp-bar {
-    background: linear-gradient(90deg, #a855f7, #22d3ee);
+    background: linear-gradient(90deg, var(--green), var(--brown-mid));
     border-radius: 999px;
     position: relative;
     overflow: hidden;
   }
-
   .xp-bar::after {
     content: "";
     position: absolute;
@@ -141,79 +141,48 @@
     background: linear-gradient(
       90deg,
       transparent,
-      rgba(255, 255, 255, 0.3),
+      rgba(255, 255, 255, 0.4),
       transparent
     );
     animation: shimmer 2s infinite;
   }
 
-  .badge-game {
-    display: inline-flex;
-    align-items: center;
-    gap: 4px;
-    padding: 2px 10px;
-    border-radius: 999px;
-    font-size: 11px;
-    font-weight: 700;
-    letter-spacing: 0.05em;
-    text-transform: uppercase;
+  /* Shadows / accents */
+  .shadow-green {
+    box-shadow: 0 4px 16px rgba(45, 122, 79, 0.18);
+  }
+  .shadow-brown {
+    box-shadow: 0 4px 16px rgba(139, 94, 60, 0.18);
+  }
+  .pulse-ring {
+    animation: pulseRing 2.5s infinite;
   }
 
-  .hover-lift {
-    transition:
-      transform 0.2s ease,
-      box-shadow 0.2s ease;
-  }
-  .hover-lift:hover {
-    transform: translateY(-4px);
-  }
-
-  .nav-item {
-    transition: all 0.2s ease;
-    position: relative;
-  }
-
-  .nav-item.active::after {
-    content: "";
-    position: absolute;
-    bottom: -2px;
-    left: 50%;
-    transform: translateX(-50%);
-    width: 4px;
-    height: 4px;
-    border-radius: 50%;
-    background: var(--neon-purple);
-  }
-
+  /* Animations */
   .animate-fade-in {
-    animation: fadeIn 0.4s ease forwards;
+    animation: fadeIn 0.35s ease forwards;
   }
-
   .animate-scale-in {
-    animation: scaleIn 0.3s ease forwards;
+    animation: scaleIn 0.25s ease forwards;
   }
 
   .stagger-1 {
-    animation-delay: 0.05s;
+    animation-delay: 0.04s;
   }
   .stagger-2 {
-    animation-delay: 0.1s;
+    animation-delay: 0.08s;
   }
   .stagger-3 {
-    animation-delay: 0.15s;
+    animation-delay: 0.12s;
   }
   .stagger-4 {
-    animation-delay: 0.2s;
+    animation-delay: 0.16s;
   }
   .stagger-5 {
-    animation-delay: 0.25s;
+    animation-delay: 0.2s;
   }
   .stagger-6 {
-    animation-delay: 0.3s;
-  }
-
-  .pulse-ring {
-    animation: pulseRing 2s infinite;
+    animation-delay: 0.24s;
   }
 }
 
@@ -225,49 +194,44 @@
     left: 100%;
   }
 }
-
 @keyframes fadeIn {
   from {
     opacity: 0;
-    transform: translateY(12px);
+    transform: translateY(10px);
   }
   to {
     opacity: 1;
     transform: translateY(0);
   }
 }
-
 @keyframes scaleIn {
   from {
     opacity: 0;
-    transform: scale(0.92);
+    transform: scale(0.93);
   }
   to {
     opacity: 1;
     transform: scale(1);
   }
 }
-
 @keyframes pulseRing {
   0%,
   100% {
-    box-shadow: 0 0 0 0 rgba(168, 85, 247, 0.4);
+    box-shadow: 0 0 0 0 rgba(45, 122, 79, 0.35);
   }
   50% {
-    box-shadow: 0 0 0 8px rgba(168, 85, 247, 0);
+    box-shadow: 0 0 0 8px rgba(45, 122, 79, 0);
   }
 }
-
 @keyframes float {
   0%,
   100% {
-    transform: translateY(0px);
+    transform: translateY(0);
   }
   50% {
-    transform: translateY(-6px);
+    transform: translateY(-5px);
   }
 }
-
 @keyframes accordion-down {
   from {
     height: 0;
