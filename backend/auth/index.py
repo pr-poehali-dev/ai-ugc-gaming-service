@@ -1,0 +1,161 @@
+"""Авторизация: регистрация, вход, получение профиля, выход."""
+import json
+import os
+import hashlib
+import secrets
+import psycopg2
+
+CORS = {
+    'Access-Control-Allow-Origin': '*',
+    'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
+    'Access-Control-Allow-Headers': 'Content-Type, X-Session-Token',
+}
+
+SCHEMA = os.environ.get('MAIN_DB_SCHEMA', 't_p62618369_ai_ugc_gaming_servic')
+
+AVATARS = ['🚀', '🦁', '🦊', '🐺', '🐉', '🦋', '🎯', '💎', '🧠', '⚡', '🔥', '🌟']
+
+
+def get_conn():
+    return psycopg2.connect(os.environ['DATABASE_URL'])
+
+
+def hash_password(password: str) -> str:
+    return hashlib.sha256(password.encode()).hexdigest()
+
+
+def make_token() -> str:
+    return secrets.token_hex(32)
+
+
+def ok(data: dict, status: int = 200) -> dict:
+    return {'statusCode': status, 'headers': {**CORS, 'Content-Type': 'application/json'}, 'body': json.dumps(data)}
+
+
+def err(msg: str, status: int = 400) -> dict:
+    return {'statusCode': status, 'headers': {**CORS, 'Content-Type': 'application/json'}, 'body': json.dumps({'error': msg})}
+
+
+def handler(event: dict, context) -> dict:
+    if event.get('httpMethod') == 'OPTIONS':
+        return {'statusCode': 200, 'headers': CORS, 'body': ''}
+
+    path = event.get('path', '').rstrip('/')
+    method = event.get('httpMethod', 'GET')
+    body = {}
+    if event.get('body'):
+        body = json.loads(event['body'])
+
+    token = event.get('headers', {}).get('X-Session-Token', '')
+
+    action = body.get('action', '') if method == 'POST' else (event.get('queryStringParameters') or {}).get('action', 'me')
+
+    if action == 'register':
+        return register(body)
+    if action == 'login':
+        return login(body)
+    if action == 'logout':
+        return logout(token)
+
+    return get_me(token)
+
+
+def register(body: dict) -> dict:
+    username = (body.get('username') or '').strip()
+    email = (body.get('email') or '').strip().lower()
+    password = body.get('password') or ''
+
+    if not username or not email or not password:
+        return err('Заполните все поля')
+    if len(username) < 3:
+        return err('Имя минимум 3 символа')
+    if len(password) < 6:
+        return err('Пароль минимум 6 символов')
+    if '@' not in email:
+        return err('Неверный email')
+
+    import random
+    avatar = random.choice(AVATARS)
+    pw_hash = hash_password(password)
+    token = make_token()
+
+    conn = get_conn()
+    cur = conn.cursor()
+    cur.execute(f"SELECT id FROM {SCHEMA}.users WHERE username = %s OR email = %s", (username, email))
+    if cur.fetchone():
+        conn.close()
+        return err('Пользователь уже существует')
+
+    cur.execute(
+        f"INSERT INTO {SCHEMA}.users (username, email, password_hash, avatar) VALUES (%s, %s, %s, %s) RETURNING id",
+        (username, email, pw_hash, avatar)
+    )
+    user_id = cur.fetchone()[0]
+    cur.execute(
+        f"INSERT INTO {SCHEMA}.sessions (user_id, token) VALUES (%s, %s)",
+        (user_id, token)
+    )
+    conn.commit()
+    conn.close()
+
+    return ok({'token': token, 'user': {'id': user_id, 'username': username, 'email': email, 'avatar': avatar, 'xp': 0, 'level': 1, 'streak': 0}})
+
+
+def login(body: dict) -> dict:
+    login_val = (body.get('login') or '').strip().lower()
+    password = body.get('password') or ''
+
+    if not login_val or not password:
+        return err('Заполните все поля')
+
+    pw_hash = hash_password(password)
+    conn = get_conn()
+    cur = conn.cursor()
+    cur.execute(
+        f"SELECT id, username, email, avatar, xp, level, streak FROM {SCHEMA}.users WHERE (LOWER(email) = %s OR LOWER(username) = %s) AND password_hash = %s",
+        (login_val, login_val, pw_hash)
+    )
+    row = cur.fetchone()
+    if not row:
+        conn.close()
+        return err('Неверный логин или пароль')
+
+    user_id, username, email, avatar, xp, level, streak = row
+    token = make_token()
+    cur.execute(f"INSERT INTO {SCHEMA}.sessions (user_id, token) VALUES (%s, %s)", (user_id, token))
+    conn.commit()
+    conn.close()
+
+    return ok({'token': token, 'user': {'id': user_id, 'username': username, 'email': email, 'avatar': avatar, 'xp': xp, 'level': level, 'streak': streak}})
+
+
+def get_me(token: str) -> dict:
+    if not token:
+        return err('Не авторизован', 401)
+
+    conn = get_conn()
+    cur = conn.cursor()
+    cur.execute(
+        f"""SELECT u.id, u.username, u.email, u.avatar, u.xp, u.level, u.streak
+            FROM {SCHEMA}.sessions s JOIN {SCHEMA}.users u ON s.user_id = u.id
+            WHERE s.token = %s AND s.expires_at > NOW()""",
+        (token,)
+    )
+    row = cur.fetchone()
+    conn.close()
+    if not row:
+        return err('Сессия истекла', 401)
+
+    user_id, username, email, avatar, xp, level, streak = row
+    return ok({'user': {'id': user_id, 'username': username, 'email': email, 'avatar': avatar, 'xp': xp, 'level': level, 'streak': streak}})
+
+
+def logout(token: str) -> dict:
+    if not token:
+        return ok({'ok': True})
+    conn = get_conn()
+    cur = conn.cursor()
+    cur.execute(f"UPDATE {SCHEMA}.sessions SET expires_at = NOW() WHERE token = %s", (token,))
+    conn.commit()
+    conn.close()
+    return ok({'ok': True})

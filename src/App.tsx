@@ -1,5 +1,152 @@
-import { useState } from "react";
+import { useState, useEffect, useCallback } from "react";
 import Icon from "@/components/ui/icon";
+
+const AUTH_URL = "https://functions.poehali.dev/16228047-1a09-4827-af8c-d5ca8dd48885";
+const TOKEN_KEY = "aiquest_token";
+
+interface User {
+  id: number;
+  username: string;
+  email: string;
+  avatar: string;
+  xp: number;
+  level: number;
+  streak: number;
+}
+
+async function apiAuth(body: Record<string, string>) {
+  const res = await fetch(AUTH_URL, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(body),
+  });
+  return res.json();
+}
+
+async function apiMe(token: string) {
+  const res = await fetch(AUTH_URL, {
+    headers: { "X-Session-Token": token },
+  });
+  return res.json();
+}
+
+function AuthScreen({ onAuth }: { onAuth: (user: User, token: string) => void }) {
+  const [mode, setMode] = useState<"login" | "register">("login");
+  const [form, setForm] = useState({ username: "", email: "", login: "", password: "" });
+  const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
+
+  const set = (k: string) => (e: React.ChangeEvent<HTMLInputElement>) =>
+    setForm(f => ({ ...f, [k]: e.target.value }));
+
+  const submit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError("");
+    setLoading(true);
+    const body = mode === "register"
+      ? { action: "register", username: form.username, email: form.email, password: form.password }
+      : { action: "login", login: form.login, password: form.password };
+    const data = await apiAuth(body);
+    setLoading(false);
+    if (data.error) { setError(data.error); return; }
+    localStorage.setItem(TOKEN_KEY, data.token);
+    onAuth(data.user, data.token);
+  };
+
+  return (
+    <div className="min-h-screen bg-background grid-bg font-rubik flex items-center justify-center px-4">
+      <div className="w-full max-w-sm animate-scale-in">
+        <div className="text-center mb-8">
+          <div className="w-20 h-20 rounded-3xl bg-neon-purple/20 border-2 border-neon-purple/50 flex items-center justify-center text-4xl mx-auto mb-4 neon-glow-purple animate-float">
+            🧠
+          </div>
+          <h1 className="font-mono-rubik text-3xl text-white tracking-tight">AIQuest</h1>
+          <p className="text-white/40 text-sm mt-1">Обучение ИИ — это игра</p>
+        </div>
+
+        <div className="card-game rounded-3xl p-6" style={{ border: "1px solid rgba(168,85,247,0.2)" }}>
+          <div className="flex rounded-2xl bg-white/5 p-1 mb-6">
+            {(["login", "register"] as const).map(m => (
+              <button
+                key={m}
+                onClick={() => { setMode(m); setError(""); }}
+                className="flex-1 py-2 rounded-xl text-sm font-semibold transition-all duration-200"
+                style={mode === m ? { background: "rgba(168,85,247,0.3)", color: "#a855f7" } : { color: "rgba(255,255,255,0.4)" }}
+              >
+                {m === "login" ? "Войти" : "Регистрация"}
+              </button>
+            ))}
+          </div>
+
+          <form onSubmit={submit} className="space-y-3">
+            {mode === "register" && (
+              <div>
+                <label className="text-white/50 text-xs mb-1 block">Имя игрока</label>
+                <input
+                  value={form.username}
+                  onChange={set("username")}
+                  placeholder="SuperAI_User"
+                  className="w-full px-4 py-3 rounded-xl bg-white/8 border border-white/10 text-white placeholder-white/25 text-sm outline-none focus:border-neon-purple/50 transition-colors"
+                />
+              </div>
+            )}
+            {mode === "register" ? (
+              <div>
+                <label className="text-white/50 text-xs mb-1 block">Email</label>
+                <input
+                  type="email"
+                  value={form.email}
+                  onChange={set("email")}
+                  placeholder="you@example.com"
+                  className="w-full px-4 py-3 rounded-xl bg-white/8 border border-white/10 text-white placeholder-white/25 text-sm outline-none focus:border-neon-purple/50 transition-colors"
+                />
+              </div>
+            ) : (
+              <div>
+                <label className="text-white/50 text-xs mb-1 block">Email или имя</label>
+                <input
+                  value={form.login}
+                  onChange={set("login")}
+                  placeholder="you@example.com"
+                  className="w-full px-4 py-3 rounded-xl bg-white/8 border border-white/10 text-white placeholder-white/25 text-sm outline-none focus:border-neon-purple/50 transition-colors"
+                />
+              </div>
+            )}
+            <div>
+              <label className="text-white/50 text-xs mb-1 block">Пароль</label>
+              <input
+                type="password"
+                value={form.password}
+                onChange={set("password")}
+                placeholder="••••••••"
+                className="w-full px-4 py-3 rounded-xl bg-white/8 border border-white/10 text-white placeholder-white/25 text-sm outline-none focus:border-neon-purple/50 transition-colors"
+              />
+            </div>
+
+            {error && (
+              <div className="px-4 py-3 rounded-xl bg-red-500/15 border border-red-500/30 text-red-400 text-sm">
+                {error}
+              </div>
+            )}
+
+            <button
+              type="submit"
+              disabled={loading}
+              className="w-full py-3 rounded-xl font-bold text-white text-sm transition-all active:scale-95 disabled:opacity-50 mt-2"
+              style={{ background: "linear-gradient(135deg, #a855f7, #7c3aed)", boxShadow: "0 0 20px rgba(168,85,247,0.35)" }}
+            >
+              {loading ? "⏳ Загрузка..." : mode === "login" ? "⚡ Войти в игру" : "🚀 Создать аккаунт"}
+            </button>
+          </form>
+        </div>
+
+        <p className="text-center text-white/25 text-xs mt-4">
+          Учи ИИ-сервисы · Зарабатывай XP · Побеждай
+        </p>
+      </div>
+    </div>
+  );
+}
 
 type Tab = "courses" | "tasks" | "rating" | "profile" | "community" | "achievements";
 
@@ -336,42 +483,44 @@ function CommunityTab() {
   );
 }
 
-function ProfileTab() {
-  const totalXp = 7820;
-  const level = 27;
-  const nextLevelXp = 8500;
-  const xpToNext = nextLevelXp - totalXp;
+function ProfileTab({ user, onLogout }: { user: User; onLogout: () => void }) {
+  const nextLevelXp = (user.level + 1) * 300;
+  const xpToNext = Math.max(0, nextLevelXp - user.xp);
   return (
     <div className="space-y-5">
       <div className="card-game rounded-3xl p-6 animate-fade-in" style={{ background: "linear-gradient(135deg, rgba(168,85,247,0.15), rgba(34,211,238,0.08))", border: "1px solid rgba(168,85,247,0.25)" }}>
         <div className="flex items-center gap-4">
           <div className="relative">
-            <div className="w-20 h-20 rounded-2xl flex items-center justify-center text-4xl pulse-ring" style={{ background: "rgba(168,85,247,0.2)", border: "2px solid rgba(168,85,247,0.5)" }}>🚀</div>
-            <div className="absolute -bottom-1 -right-1 w-7 h-7 rounded-lg bg-neon-yellow flex items-center justify-center text-xs font-black text-black">{level}</div>
+            <div className="w-20 h-20 rounded-2xl flex items-center justify-center text-4xl pulse-ring" style={{ background: "rgba(168,85,247,0.2)", border: "2px solid rgba(168,85,247,0.5)" }}>{user.avatar}</div>
+            <div className="absolute -bottom-1 -right-1 w-7 h-7 rounded-lg bg-neon-yellow flex items-center justify-center text-xs font-black text-black">{user.level}</div>
           </div>
           <div className="flex-1">
-            <h2 className="text-xl font-black text-white">ТыСам</h2>
-            <p className="text-white/50 text-sm">UGC Creator · ИИ Энтузиаст</p>
+            <h2 className="text-xl font-black text-white">{user.username}</h2>
+            <p className="text-white/50 text-sm">{user.email}</p>
             <div className="flex items-center gap-3 mt-2">
-              <span className="text-neon-purple font-bold">{totalXp.toLocaleString()} XP</span>
-              <span className="text-white/30">·</span>
-              <span className="text-white/50 text-sm">🏆 6 место</span>
+              <span className="text-neon-purple font-bold">{user.xp.toLocaleString()} XP</span>
+              {user.streak > 0 && (
+                <>
+                  <span className="text-white/30">·</span>
+                  <span className="text-neon-orange text-sm">🔥 {user.streak} дней</span>
+                </>
+              )}
             </div>
           </div>
         </div>
         <div className="mt-4">
           <div className="flex justify-between text-xs text-white/50 mb-1.5">
-            <span>Уровень {level}</span>
-            <span>До {level + 1} уровня: {xpToNext} XP</span>
+            <span>Уровень {user.level}</span>
+            <span>До {user.level + 1} уровня: {xpToNext} XP</span>
           </div>
-          <XpBar progress={(totalXp / nextLevelXp) * 100} />
+          <XpBar progress={Math.min(100, (user.xp / nextLevelXp) * 100)} />
         </div>
       </div>
       <div className="grid grid-cols-3 gap-3 animate-fade-in stagger-1">
         {[
-          { label: "Курсов", value: "3", sub: "пройдено", emoji: "📚" },
-          { label: "Заданий", value: "12", sub: "выполнено", emoji: "✅" },
-          { label: "Серия", value: "7", sub: "дней 🔥", emoji: "🔥" },
+          { label: "Курсов", value: "0", sub: "пройдено", emoji: "📚" },
+          { label: "Заданий", value: "0", sub: "выполнено", emoji: "✅" },
+          { label: "Серия", value: String(user.streak), sub: "дней 🔥", emoji: "🔥" },
         ].map((s, i) => (
           <div key={i} className="card-game rounded-2xl p-4 text-center">
             <div className="text-2xl mb-1">{s.emoji}</div>
@@ -381,7 +530,7 @@ function ProfileTab() {
         ))}
       </div>
       <div className="animate-fade-in stagger-2">
-        <p className="text-white/30 text-xs font-semibold uppercase tracking-widest mb-3">Последние достижения</p>
+        <p className="text-white/30 text-xs font-semibold uppercase tracking-widest mb-3">Достижения</p>
         <div className="flex gap-3 flex-wrap">
           {ACHIEVEMENTS.filter(a => a.unlocked).map(a => (
             <div key={a.id} className="w-14 h-14 rounded-2xl flex items-center justify-center text-2xl hover-lift cursor-pointer" style={{ background: `${a.color}22`, border: `1px solid ${a.color}44` }} title={a.title}>
@@ -405,6 +554,15 @@ function ProfileTab() {
             <Icon name="ChevronRight" size={14} className="text-white/30" />
           </button>
         ))}
+        <button
+          onClick={onLogout}
+          className="card-game w-full rounded-2xl px-4 py-3 flex items-center gap-3 text-left hover-lift"
+        >
+          <div className="w-9 h-9 rounded-xl flex items-center justify-center bg-red-500/15">
+            <Icon name="LogOut" size={16} className="text-red-400" />
+          </div>
+          <span className="text-red-400 text-sm font-medium flex-1">Выйти из аккаунта</span>
+        </button>
       </div>
     </div>
   );
@@ -412,6 +570,41 @@ function ProfileTab() {
 
 export default function App() {
   const [tab, setTab] = useState<Tab>("courses");
+  const [user, setUser] = useState<User | null>(null);
+  const [authChecked, setAuthChecked] = useState(false);
+
+  const checkSession = useCallback(async () => {
+    const token = localStorage.getItem(TOKEN_KEY);
+    if (!token) { setAuthChecked(true); return; }
+    const data = await apiMe(token);
+    if (data.user) setUser(data.user);
+    else localStorage.removeItem(TOKEN_KEY);
+    setAuthChecked(true);
+  }, []);
+
+  useEffect(() => { checkSession(); }, [checkSession]);
+
+  const handleAuth = (u: User) => setUser(u);
+
+  const handleLogout = async () => {
+    const token = localStorage.getItem(TOKEN_KEY);
+    if (token) await apiAuth({ action: "logout" });
+    localStorage.removeItem(TOKEN_KEY);
+    setUser(null);
+  };
+
+  if (!authChecked) {
+    return (
+      <div className="min-h-screen bg-background grid-bg flex items-center justify-center">
+        <div className="text-center">
+          <div className="text-5xl animate-float mb-4">🧠</div>
+          <div className="text-white/40 text-sm font-rubik">Загрузка...</div>
+        </div>
+      </div>
+    );
+  }
+
+  if (!user) return <AuthScreen onAuth={handleAuth} />;
 
   const renderTab = () => {
     switch (tab) {
@@ -420,7 +613,7 @@ export default function App() {
       case "rating": return <RatingTab />;
       case "achievements": return <AchievementsTab />;
       case "community": return <CommunityTab />;
-      case "profile": return <ProfileTab />;
+      case "profile": return <ProfileTab user={user} onLogout={handleLogout} />;
     }
   };
 
@@ -435,10 +628,10 @@ export default function App() {
           <div className="flex items-center gap-2">
             <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-neon-yellow/15 border border-neon-yellow/30">
               <span className="text-sm">⚡</span>
-              <span className="font-bold text-neon-yellow text-sm">7820 XP</span>
+              <span className="font-bold text-neon-yellow text-sm">{user.xp.toLocaleString()} XP</span>
             </div>
-            <div className="w-9 h-9 rounded-xl bg-neon-orange/20 border border-neon-orange/30 flex items-center justify-center">
-              <span className="text-base">🔥</span>
+            <div className="w-9 h-9 rounded-xl bg-white/10 border border-white/15 flex items-center justify-center text-lg cursor-pointer hover:scale-110 transition-transform" onClick={() => setTab("profile")}>
+              {user.avatar}
             </div>
           </div>
         </div>
