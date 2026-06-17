@@ -102,7 +102,8 @@ def get_lessons(cur, user_id):
                l.phase, l.checklist,
                CASE WHEN ul.id IS NOT NULL THEN true ELSE false END as completed,
                l.video_url, l.video_xp,
-               CASE WHEN vv.id IS NOT NULL THEN true ELSE false END as video_watched
+               CASE WHEN vv.id IS NOT NULL THEN true ELSE false END as video_watched,
+               l.cover_url
         FROM {SCHEMA}.lessons l
         LEFT JOIN {SCHEMA}.user_lessons ul ON ul.lesson_id = l.id AND ul.user_id = %s
         LEFT JOIN {SCHEMA}.user_video_views vv ON vv.lesson_id = l.id AND vv.user_id = %s
@@ -117,6 +118,7 @@ def get_lessons(cur, user_id):
         'video_url': r[8],
         'video_xp': r[9] or 30,
         'video_watched': r[10],
+        'cover_url': r[11],
     } for r in rows]})
 
 

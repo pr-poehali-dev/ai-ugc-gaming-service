@@ -55,7 +55,7 @@ const PHASE_CFG = {
 // ─── Types ────────────────────────────────────────────────────────────────────
 interface User { id: number; username: string; email: string; avatar: string; xp: number; level: number; streak: number; platform?: string; onboarded?: boolean; }
 interface Profile extends User { lessons_done: number; missions_done: number; posts_count: number; season_day: number; }
-interface Lesson { id: number; day: number; title: string; subtitle: string; duration: number; phase: string; checklist: { text: string }[]; completed: boolean; video_url?: string; video_xp?: number; video_watched?: boolean; }
+interface Lesson { id: number; day: number; title: string; subtitle: string; duration: number; phase: string; checklist: { text: string }[]; completed: boolean; video_url?: string; video_xp?: number; video_watched?: boolean; cover_url?: string; }
 interface Mission { id: number; title: string; product: string | null; format: string; goal: string; hooks: string[]; template: string; xp: number; unlock_after: number; status: string | null; unlocked: boolean; }
 interface PortfolioPost { id: number; user_id: number; username: string; mission_id: number | null; mission: string | null; url: string; platform: string; format: string; notes: string; views: number; likes: number; published_at: string; is_mine: boolean; }
 type Tab = "path" | "missions" | "portfolio" | "profile";
@@ -819,8 +819,33 @@ function PathTab({ onXpGain }: { onXpGain: (xp: number, total: number) => void }
                                 {completing === lesson.id ? "СОХРАНЯЕМ..." : "✓ ЗАДАНИЕ ВЫПОЛНЕНО — +50 XP"}
                               </PixelBtn>
                             )}
+
+                            {/* Cover image */}
+                            {lesson.cover_url && (
+                              <div style={{ border: `3px solid ${G1}`, boxShadow: `4px 4px 0 ${G0}` }}>
+                                <img
+                                  src={lesson.cover_url}
+                                  alt={lesson.title}
+                                  style={{ display: "block", width: "100%", imageRendering: "pixelated" }}
+                                />
+                              </div>
+                            )}
                           </div>
                         )}
+                      </div>
+                    )}
+
+                    {/* Cover preview на выполненном уроке */}
+                    {lesson.completed && lesson.cover_url && (
+                      <div style={{ height: 56, overflow: "hidden", borderTop: `2px solid ${G2}` }}>
+                        <img
+                          src={lesson.cover_url}
+                          alt=""
+                          style={{
+                            width: "100%", objectFit: "cover", objectPosition: "center",
+                            imageRendering: "pixelated", opacity: 0.7,
+                          }}
+                        />
                       </div>
                     )}
                   </PixelCard>
