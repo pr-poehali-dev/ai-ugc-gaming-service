@@ -4,57 +4,51 @@
 
 @layer base {
   :root {
-    /* ── Светлая палитра: белый фон, зелёный + коричневый ── */
-    --background: 0 0% 98%;
-    --foreground: 30 15% 15%;
+    --background: 0 0% 97%;
+    --foreground: 120 20% 8%;
 
     --card: 0 0% 100%;
-    --card-foreground: 30 15% 15%;
+    --card-foreground: 120 20% 8%;
 
     --popover: 0 0% 100%;
-    --popover-foreground: 30 15% 15%;
+    --popover-foreground: 120 20% 8%;
 
-    /* Зелёный — основной акцент */
-    --primary: 152 55% 32%;
+    --primary: 138 72% 28%;
     --primary-foreground: 0 0% 100%;
 
-    /* Коричневый — второй акцент */
-    --secondary: 30 40% 92%;
-    --secondary-foreground: 30 35% 25%;
+    --secondary: 138 30% 90%;
+    --secondary-foreground: 138 60% 15%;
 
-    --muted: 30 20% 94%;
-    --muted-foreground: 30 10% 50%;
+    --muted: 138 15% 93%;
+    --muted-foreground: 120 8% 46%;
 
-    --accent: 152 45% 90%;
-    --accent-foreground: 152 55% 22%;
+    --accent: 138 50% 88%;
+    --accent-foreground: 138 72% 18%;
 
     --destructive: 0 72% 51%;
     --destructive-foreground: 0 0% 100%;
 
-    --border: 30 15% 88%;
-    --input: 30 15% 92%;
-    --ring: 152 55% 32%;
+    --border: 138 20% 84%;
+    --input: 138 15% 91%;
+    --ring: 138 72% 28%;
 
-    --radius: 0.875rem;
+    --radius: 0rem; /* 16-bit = no border radius */
 
-    /* Кастомные токены */
-    --green: #2d7a4f;
-    --green-light: #e8f5ee;
-    --green-mid: #3d9962;
-    --brown: #8b5e3c;
-    --brown-light: #f5ede4;
-    --brown-mid: #a67048;
-    --stone: #f5f1ec;
-    --stone-border: #e8e0d6;
+    /* 16-bit green palette */
+    --g0: #0a2e0a; /* darkest — shadow */
+    --g1: #1a5c1a; /* dark green */
+    --g2: #2e8c2e; /* main green */
+    --g3: #3daa3d; /* mid green */
+    --g4: #58cc58; /* bright */
+    --g5: #a8e8a8; /* light */
+    --g6: #d4f4d4; /* very light */
+    --g7: #f0fff0; /* almost white green */
 
-    --sidebar-background: 0 0% 98%;
-    --sidebar-foreground: 30 15% 15%;
-    --sidebar-primary: 152 55% 32%;
-    --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 30 40% 92%;
-    --sidebar-accent-foreground: 30 35% 25%;
-    --sidebar-border: 30 15% 88%;
-    --sidebar-ring: 152 55% 32%;
+    --ink: #0f1f0f;
+    --paper: #f4faf4;
+    --muted-txt: #4a7a4a;
+    --border-clr: #c2dcc2;
+    --shadow-clr: #1a5c1a;
   }
 }
 
@@ -63,141 +57,265 @@
     @apply border-border;
   }
   body {
-    @apply bg-background text-foreground;
-    font-family: "Rubik", sans-serif;
+    background: var(--paper);
+    color: var(--ink);
+    font-family: "VT323", monospace;
+    font-size: 18px;
+    image-rendering: pixelated;
   }
 }
 
 @layer utilities {
+  /* ── Fonts ── */
+  .font-pixel {
+    font-family: "Press Start 2P", monospace;
+  }
+  .font-vt323 {
+    font-family: "VT323", monospace;
+  }
   .font-rubik {
     font-family: "Rubik", sans-serif;
   }
-  .font-mono-rubik {
-    font-family: "Rubik Mono One", monospace;
+
+  /* ── 16-BIT CARD: hard pixel shadow, no radius ── */
+  .card-pixel {
+    background: #fff;
+    border: 3px solid var(--g1);
+    box-shadow: 4px 4px 0 var(--g0);
+    border-radius: 0;
+  }
+  .card-pixel-green {
+    background: var(--g7);
+    border: 3px solid var(--g2);
+    box-shadow: 4px 4px 0 var(--g1);
+    border-radius: 0;
   }
 
-  /* Cards */
-  .card-game {
-    background: #ffffff;
-    border: 1px solid var(--stone-border);
-    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.06);
+  /* ── 16-BIT BUTTON ── */
+  .btn-pixel {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    border: 3px solid var(--g0);
+    border-radius: 0;
+    font-family: "Press Start 2P", monospace;
+    font-size: 10px;
+    line-height: 1.4;
+    cursor: pointer;
+    transition: none;
+    position: relative;
+    box-shadow: 4px 4px 0 var(--g0);
+    background: var(--g2);
+    color: #fff;
+    padding: 10px 16px;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    user-select: none;
   }
-  .card-game-brown {
-    background: var(--brown-light);
-    border: 1px solid #dbc9b4;
+  .btn-pixel:active {
+    box-shadow: 1px 1px 0 var(--g0);
+    transform: translate(3px, 3px);
   }
-  .card-game-green {
-    background: var(--green-light);
-    border: 1px solid #bcdece;
+  .btn-pixel-outline {
+    background: #fff;
+    color: var(--g1);
+    box-shadow: 4px 4px 0 var(--g0);
+  }
+  .btn-pixel-outline:active {
+    box-shadow: 1px 1px 0 var(--g0);
+    transform: translate(3px, 3px);
+  }
+  .btn-pixel-ghost {
+    background: var(--g7);
+    color: var(--g1);
+    border-color: var(--g3);
+    box-shadow: 4px 4px 0 var(--g2);
+  }
+  .btn-pixel-ghost:active {
+    box-shadow: 1px 1px 0 var(--g2);
+    transform: translate(3px, 3px);
+  }
+  .btn-pixel-danger {
+    background: #c0392b;
+    color: #fff;
+    border-color: #7b241c;
+    box-shadow: 4px 4px 0 #7b241c;
+  }
+  .btn-pixel-danger:active {
+    box-shadow: 1px 1px 0 #7b241c;
+    transform: translate(3px, 3px);
   }
 
-  /* Grid texture — тихий, под светлый фон */
-  .grid-bg {
-    background-color: #f8f5f0;
-    background-image:
-      linear-gradient(rgba(45, 122, 79, 0.05) 1px, transparent 1px),
-      linear-gradient(90deg, rgba(45, 122, 79, 0.05) 1px, transparent 1px);
-    background-size: 36px 36px;
-  }
-
-  /* Badges */
-  .badge-game {
+  /* ── BADGE ── */
+  .badge-pixel {
     display: inline-flex;
     align-items: center;
     gap: 4px;
-    padding: 2px 10px;
-    border-radius: 999px;
-    font-size: 11px;
-    font-weight: 700;
-    letter-spacing: 0.04em;
+    padding: 2px 8px;
+    border: 2px solid var(--g1);
+    background: var(--g6);
+    color: var(--g0);
+    font-family: "Press Start 2P", monospace;
+    font-size: 8px;
     text-transform: uppercase;
+    border-radius: 0;
+    box-shadow: 2px 2px 0 var(--g1);
+  }
+  .badge-pixel-dark {
+    background: var(--g1);
+    color: var(--g5);
+    border-color: var(--g0);
+    box-shadow: 2px 2px 0 var(--g0);
   }
 
-  /* Interactions */
-  .hover-lift {
-    transition:
-      transform 0.18s ease,
-      box-shadow 0.18s ease;
+  /* ── INPUT ── */
+  .input-pixel {
+    border: 3px solid var(--g1);
+    border-radius: 0;
+    background: #fff;
+    color: var(--ink);
+    font-family: "VT323", monospace;
+    font-size: 20px;
+    padding: 10px 14px;
+    outline: none;
+    box-shadow: inset 2px 2px 0 var(--g6);
+    width: 100%;
   }
-  .hover-lift:hover {
-    transform: translateY(-3px);
-    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.1);
+  .input-pixel:focus {
+    border-color: var(--g3);
+    box-shadow:
+      inset 2px 2px 0 var(--g6),
+      0 0 0 2px var(--g5);
   }
 
-  /* Progress bar */
-  .xp-bar {
-    background: linear-gradient(90deg, var(--green), var(--brown-mid));
-    border-radius: 999px;
+  /* ── PROGRESS BAR (pixelated) ── */
+  .progress-pixel {
+    height: 16px;
+    border: 3px solid var(--g1);
+    background: var(--g7);
     position: relative;
     overflow: hidden;
+    box-shadow: 2px 2px 0 var(--g0);
   }
-  .xp-bar::after {
-    content: "";
-    position: absolute;
-    top: 0;
-    left: -100%;
-    width: 100%;
+  .progress-pixel-fill {
     height: 100%;
-    background: linear-gradient(
+    background: repeating-linear-gradient(
       90deg,
-      transparent,
-      rgba(255, 255, 255, 0.4),
-      transparent
+      var(--g3) 0px,
+      var(--g3) 8px,
+      var(--g4) 8px,
+      var(--g4) 16px
     );
-    animation: shimmer 2s infinite;
+    transition: width 0.4s steps(10);
   }
 
-  /* Shadows / accents */
-  .shadow-green {
-    box-shadow: 0 4px 16px rgba(45, 122, 79, 0.18);
+  /* ── NAV BAR ── */
+  .nav-pixel {
+    background: var(--g1);
+    border-top: 3px solid var(--g0);
   }
-  .shadow-brown {
-    box-shadow: 0 4px 16px rgba(139, 94, 60, 0.18);
+  .nav-pixel-item {
+    color: var(--g5);
+    font-family: "Press Start 2P", monospace;
+    font-size: 7px;
   }
-  .pulse-ring {
-    animation: pulseRing 2.5s infinite;
+  .nav-pixel-item.active {
+    color: #fff;
+    background: var(--g2);
   }
 
-  /* Animations */
+  /* ── HEADER ── */
+  .header-pixel {
+    background: var(--g1);
+    border-bottom: 3px solid var(--g0);
+  }
+
+  /* ── PIXEL DIVIDER ── */
+  .divider-pixel {
+    height: 3px;
+    background: repeating-linear-gradient(
+      90deg,
+      var(--g3) 0px,
+      var(--g3) 4px,
+      transparent 4px,
+      transparent 8px
+    );
+  }
+
+  /* ── CHECK BOX PIXEL ── */
+  .check-pixel {
+    width: 20px;
+    height: 20px;
+    border: 3px solid var(--g1);
+    background: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    box-shadow: 2px 2px 0 var(--g0);
+  }
+  .check-pixel.checked {
+    background: var(--g2);
+    border-color: var(--g0);
+  }
+
+  /* ── GRID BG ── */
+  .grid-bg {
+    background-color: var(--paper);
+    background-image:
+      linear-gradient(rgba(46, 140, 46, 0.08) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(46, 140, 46, 0.08) 1px, transparent 1px);
+    background-size: 16px 16px;
+  }
+
+  /* ── ANIMATIONS ── */
   .animate-fade-in {
-    animation: fadeIn 0.35s ease forwards;
+    animation: fadeIn 0.2s steps(4) forwards;
   }
   .animate-scale-in {
-    animation: scaleIn 0.25s ease forwards;
+    animation: scaleIn 0.15s steps(3) forwards;
+  }
+  .animate-blink {
+    animation: blink 1s steps(1) infinite;
+  }
+  .animate-march {
+    animation: march 0.8s steps(4) infinite;
   }
 
   .stagger-1 {
-    animation-delay: 0.04s;
+    animation-delay: 0.05s;
   }
   .stagger-2 {
-    animation-delay: 0.08s;
+    animation-delay: 0.1s;
   }
   .stagger-3 {
-    animation-delay: 0.12s;
+    animation-delay: 0.15s;
   }
   .stagger-4 {
-    animation-delay: 0.16s;
-  }
-  .stagger-5 {
     animation-delay: 0.2s;
   }
+  .stagger-5 {
+    animation-delay: 0.25s;
+  }
   .stagger-6 {
-    animation-delay: 0.24s;
+    animation-delay: 0.3s;
+  }
+
+  /* ── HOVER (pixel jump) ── */
+  .hover-pixel {
+    transition: none;
+  }
+  .hover-pixel:hover {
+    transform: translate(-2px, -2px);
+    box-shadow: 6px 6px 0 var(--g0) !important;
   }
 }
 
-@keyframes shimmer {
-  0% {
-    left: -100%;
-  }
-  100% {
-    left: 100%;
-  }
-}
 @keyframes fadeIn {
   from {
     opacity: 0;
-    transform: translateY(10px);
+    transform: translateY(8px);
   }
   to {
     opacity: 1;
@@ -207,29 +325,37 @@
 @keyframes scaleIn {
   from {
     opacity: 0;
-    transform: scale(0.93);
+    transform: scale(0.9);
   }
   to {
     opacity: 1;
     transform: scale(1);
   }
 }
-@keyframes pulseRing {
+@keyframes blink {
   0%,
   100% {
-    box-shadow: 0 0 0 0 rgba(45, 122, 79, 0.35);
+    opacity: 1;
   }
   50% {
-    box-shadow: 0 0 0 8px rgba(45, 122, 79, 0);
+    opacity: 0;
   }
 }
-@keyframes float {
-  0%,
-  100% {
-    transform: translateY(0);
+@keyframes march {
+  0% {
+    transform: translateX(0);
+  }
+  25% {
+    transform: translateX(2px) translateY(-1px);
   }
   50% {
-    transform: translateY(-5px);
+    transform: translateX(0);
+  }
+  75% {
+    transform: translateX(-2px) translateY(-1px);
+  }
+  100% {
+    transform: translateX(0);
   }
 }
 @keyframes accordion-down {
@@ -246,5 +372,13 @@
   }
   to {
     height: 0;
+  }
+}
+@keyframes shimmer {
+  0% {
+    left: -100%;
+  }
+  100% {
+    left: 100%;
   }
 }
