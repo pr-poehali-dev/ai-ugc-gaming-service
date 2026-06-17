@@ -267,7 +267,7 @@ function LandingScreen({ onAuth }: { onAuth: (u: User) => void }) {
               <img
                 src="https://cdn.poehali.dev/projects/5137e801-4ad0-4168-8f01-73f78e2e10e1/bucket/95483b2c-8c66-4d7f-bb76-0508351d9941.png"
                 alt="Hero scene"
-                style={{ width: "100%", maxWidth: 580, objectFit: "contain" }}
+                style={{ width: "100%", maxWidth: 420, objectFit: "contain" }}
               />
             </div>
           </div>
