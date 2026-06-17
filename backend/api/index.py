@@ -57,6 +57,10 @@ def handler(event: dict, context) -> dict:
     try:
         if action == 'get_lessons' or (method == 'GET' and not action):
             return get_lessons(cur, user_id)
+        if action == 'watch_video':
+            if not user_id:
+                return err('Не авторизован', 401)
+            return watch_video(cur, conn, user_id, body.get('lesson_id'))
         if action == 'complete_lesson':
             if not user_id:
                 return err('Не авторизован', 401)
@@ -96,18 +100,42 @@ def get_lessons(cur, user_id):
     cur.execute(f"""
         SELECT l.id, l.day_number, l.title, l.subtitle, l.duration_min,
                l.phase, l.checklist,
-               CASE WHEN ul.id IS NOT NULL THEN true ELSE false END as completed
+               CASE WHEN ul.id IS NOT NULL THEN true ELSE false END as completed,
+               l.video_url, l.video_xp,
+               CASE WHEN vv.id IS NOT NULL THEN true ELSE false END as video_watched
         FROM {SCHEMA}.lessons l
         LEFT JOIN {SCHEMA}.user_lessons ul ON ul.lesson_id = l.id AND ul.user_id = %s
+        LEFT JOIN {SCHEMA}.user_video_views vv ON vv.lesson_id = l.id AND vv.user_id = %s
         ORDER BY l.sort_order
-    """, (user_id,))
+    """, (user_id, user_id))
     rows = cur.fetchall()
     return ok({'lessons': [{
         'id': r[0], 'day': r[1], 'title': r[2], 'subtitle': r[3],
         'duration': r[4], 'phase': r[5],
         'checklist': r[6] if r[6] else [],
         'completed': r[7],
+        'video_url': r[8],
+        'video_xp': r[9] or 30,
+        'video_watched': r[10],
     } for r in rows]})
+
+
+def watch_video(cur, conn, user_id, lesson_id):
+    if not lesson_id:
+        return err('lesson_id required')
+    cur.execute(f"SELECT id FROM {SCHEMA}.user_video_views WHERE user_id = %s AND lesson_id = %s", (user_id, lesson_id))
+    if cur.fetchone():
+        return ok({'ok': True, 'already': True, 'xp_gained': 0})
+    cur.execute(f"SELECT video_xp FROM {SCHEMA}.lessons WHERE id = %s", (lesson_id,))
+    row = cur.fetchone()
+    xp = (row[0] or 30) if row else 30
+    cur.execute(f"INSERT INTO {SCHEMA}.user_video_views (user_id, lesson_id) VALUES (%s, %s)", (user_id, lesson_id))
+    cur.execute(f"UPDATE {SCHEMA}.users SET xp = xp + %s WHERE id = %s RETURNING xp", (xp, user_id))
+    new_xp = cur.fetchone()[0]
+    new_level = max(1, new_xp // 300)
+    cur.execute(f"UPDATE {SCHEMA}.users SET level = %s WHERE id = %s", (new_level, user_id))
+    conn.commit()
+    return ok({'ok': True, 'xp_gained': xp, 'total_xp': new_xp, 'level': new_level})
 
 
 def complete_lesson(cur, conn, user_id, lesson_id):

@@ -23,6 +23,8 @@ import {
   ArrowTopRightOnSquareIcon,
   RocketLaunchIcon,
   TrophyIcon,
+  PlayIcon,
+  PlayCircleIcon,
 } from "@heroicons/react/24/solid";
 import { ArrowRightIcon } from "@heroicons/react/24/outline";
 
@@ -53,7 +55,7 @@ const PHASE_CFG = {
 // ─── Types ────────────────────────────────────────────────────────────────────
 interface User { id: number; username: string; email: string; avatar: string; xp: number; level: number; streak: number; platform?: string; onboarded?: boolean; }
 interface Profile extends User { lessons_done: number; missions_done: number; posts_count: number; season_day: number; }
-interface Lesson { id: number; day: number; title: string; subtitle: string; duration: number; phase: string; checklist: { text: string }[]; completed: boolean; }
+interface Lesson { id: number; day: number; title: string; subtitle: string; duration: number; phase: string; checklist: { text: string }[]; completed: boolean; video_url?: string; video_xp?: number; video_watched?: boolean; }
 interface Mission { id: number; title: string; product: string | null; format: string; goal: string; hooks: string[]; template: string; xp: number; unlock_after: number; status: string | null; unlocked: boolean; }
 interface PortfolioPost { id: number; user_id: number; username: string; mission_id: number | null; mission: string | null; url: string; platform: string; format: string; notes: string; views: number; likes: number; published_at: string; is_mine: boolean; }
 type Tab = "path" | "missions" | "portfolio" | "profile";
@@ -522,17 +524,61 @@ function XpToast({ xp, onDone }: { xp: number; onDone: () => void }) {
 }
 
 // ─── PATH TAB ─────────────────────────────────────────────────────────────────
+// Вытащить Vimeo ID из ссылки
+function vimeoId(url: string): string {
+  const m = url.match(/vimeo\.com\/(\d+)/);
+  return m ? m[1] : "";
+}
+
+// Встроенный Vimeo плеер
+function VimeoPlayer({ url }: { url: string }) {
+  const id = vimeoId(url);
+  if (!id) return null;
+  return (
+    <div style={{ position: "relative", paddingBottom: "56.25%", height: 0, border: `3px solid ${G1}`, boxShadow: `4px 4px 0 ${G0}` }}>
+      <iframe
+        src={`https://player.vimeo.com/video/${id}?color=2a8c2a&title=0&byline=0&portrait=0`}
+        style={{ position: "absolute", top: 0, left: 0, width: "100%", height: "100%", border: 0 }}
+        allow="autoplay; fullscreen; picture-in-picture"
+        allowFullScreen
+      />
+    </div>
+  );
+}
+
 function PathTab({ onXpGain }: { onXpGain: (xp: number, total: number) => void }) {
-  const [lessons, setLessons] = useState<Lesson[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [open, setOpen] = useState<number | null>(null);
+  const [lessons, setLessons]     = useState<Lesson[]>([]);
+  const [loading, setLoading]     = useState(true);
+  const [open, setOpen]           = useState<number | null>(null);
+  // step: "video" | "task"
+  const [step, setStep]           = useState<Record<number, "video" | "task">>({});
+  const [watching, setWatching]   = useState<number | null>(null);
   const [completing, setCompleting] = useState<number | null>(null);
 
   useEffect(() => {
-    apiGet(API_URL).then(d => { if (d.lessons) setLessons(d.lessons); setLoading(false); });
+    apiGet(API_URL).then(d => {
+      if (d.lessons) setLessons(d.lessons);
+      setLoading(false);
+    });
   }, []);
 
-  const complete = async (lesson: Lesson) => {
+  const getStep = (lesson: Lesson): "video" | "task" => {
+    if (step[lesson.id]) return step[lesson.id];
+    // По умолчанию: если есть видео и не просмотрено — начинаем с видео
+    if (lesson.video_url && !lesson.video_watched) return "video";
+    return "task";
+  };
+
+  const watchVideo = async (lesson: Lesson) => {
+    setWatching(lesson.id);
+    const d = await api({ action: "watch_video", lesson_id: lesson.id });
+    setWatching(null);
+    if (d.ok && !d.already) onXpGain(d.xp_gained, d.total_xp);
+    setLessons(ls => ls.map(l => l.id === lesson.id ? { ...l, video_watched: true } : l));
+    setStep(s => ({ ...s, [lesson.id]: "task" }));
+  };
+
+  const completeLesson = async (lesson: Lesson) => {
     if (lesson.completed || completing) return;
     setCompleting(lesson.id);
     const d = await api({ action: "complete_lesson", lesson_id: lesson.id });
@@ -540,6 +586,7 @@ function PathTab({ onXpGain }: { onXpGain: (xp: number, total: number) => void }
     if (d.ok) {
       setLessons(ls => ls.map(l => l.id === lesson.id ? { ...l, completed: true } : l));
       if (!d.already) onXpGain(d.xp_gained, d.total_xp);
+      setOpen(null);
     }
   };
 
@@ -572,14 +619,15 @@ function PathTab({ onXpGain }: { onXpGain: (xp: number, total: number) => void }
         : phases.map(phase => {
           const phaseLessons = lessons.filter(l => l.phase === phase);
           if (!phaseLessons.length) return null;
-          const cfg = PHASE_CFG[phase];
+          const cfg  = PHASE_CFG[phase];
           const pDone = phaseLessons.filter(l => l.completed).length;
 
           return (
             <div key={phase} className="space-y-2 animate-fade-in">
               {/* Phase label */}
               <div className="flex items-center gap-3 px-1">
-                <div className="font-pixel text-[8px] px-3 py-1.5 text-white" style={{ background: cfg.color, border: `2px solid ${G0}` }}>
+                <div className="font-pixel text-[8px] px-3 py-1.5 text-white"
+                  style={{ background: cfg.color, border: `2px solid ${G0}` }}>
                   {cfg.desc}
                 </div>
                 <div className="divider-pixel flex-1" />
@@ -587,8 +635,16 @@ function PathTab({ onXpGain }: { onXpGain: (xp: number, total: number) => void }
               </div>
 
               {phaseLessons.map((lesson, i) => {
-                const isOpen = open === lesson.id;
-                const canDo  = lesson.completed || i === 0 || phaseLessons[i - 1]?.completed;
+                const isOpen  = open === lesson.id;
+                const canDo   = lesson.completed || i === 0 || phaseLessons[i - 1]?.completed;
+                const curStep = getStep(lesson);
+                const hasVideo = !!lesson.video_url;
+
+                // Прогресс внутри урока
+                const stepsTotal = hasVideo ? 2 : 1;
+                const stepsDone  = hasVideo
+                  ? (lesson.video_watched ? 1 : 0) + (lesson.completed ? 1 : 0)
+                  : (lesson.completed ? 1 : 0);
 
                 return (
                   <PixelCard
@@ -597,6 +653,7 @@ function PathTab({ onXpGain }: { onXpGain: (xp: number, total: number) => void }
                     className={`overflow-hidden ${!canDo ? "opacity-50" : ""}`}
                     style={lesson.completed ? { borderColor: G2, boxShadow: `4px 4px 0 ${G1}` } : {}}
                   >
+                    {/* ── Header ── */}
                     <button
                       className="w-full p-4 text-left flex items-center gap-3"
                       onClick={() => canDo && !lesson.completed && setOpen(isOpen ? null : lesson.id)}
@@ -606,7 +663,7 @@ function PathTab({ onXpGain }: { onXpGain: (xp: number, total: number) => void }
                         style={lesson.completed
                           ? { background: G2, border: `2px solid ${G0}`, color: "#fff" }
                           : !canDo
-                            ? { background: G6, border: `2px solid ${G4}`, color: MUTED }
+                            ? { background: G6, border: `2px solid #d4d4d0`, color: MUTED }
                             : { background: G7, border: `3px solid ${G1}`, color: G1 }}>
                         {lesson.completed
                           ? <CheckIcon className="w-5 h-5 text-white" />
@@ -616,47 +673,154 @@ function PathTab({ onXpGain }: { onXpGain: (xp: number, total: number) => void }
                       </div>
 
                       <div className="flex-1 min-w-0">
-                        <p className="font-pixel text-[9px] leading-relaxed" style={{ color: lesson.completed ? G1 : INK }}>
+                        <p className="font-pixel text-[9px] leading-relaxed" style={{ color: lesson.completed ? G2 : INK }}>
                           {lesson.title}
                         </p>
                         <p className="font-vt323 text-base mt-0.5 truncate" style={{ color: MUTED }}>
                           {lesson.subtitle}
                         </p>
+                        {/* Mini step indicators */}
+                        {hasVideo && canDo && (
+                          <div className="flex items-center gap-2 mt-1">
+                            <div className="flex items-center gap-1">
+                              <div className="w-2 h-2" style={{ background: lesson.video_watched ? G2 : "#d4d4d0", border: `1px solid ${G1}` }} />
+                              <span className="font-pixel text-[6px]" style={{ color: lesson.video_watched ? G2 : MUTED }}>ВИДЕО</span>
+                            </div>
+                            <span style={{ color: MUTED, fontSize: 8 }}>→</span>
+                            <div className="flex items-center gap-1">
+                              <div className="w-2 h-2" style={{ background: lesson.completed ? G2 : "#d4d4d0", border: `1px solid ${G1}` }} />
+                              <span className="font-pixel text-[6px]" style={{ color: lesson.completed ? G2 : MUTED }}>ЗАДАНИЕ</span>
+                            </div>
+                          </div>
+                        )}
                       </div>
 
                       <div className="flex items-center gap-2 flex-shrink-0">
-                        <span className="font-vt323 text-base" style={{ color: MUTED }}>
-                          {lesson.duration}М
+                        {/* XP за урок */}
+                        <span className="font-pixel text-[7px]" style={{ color: G2 }}>
+                          +{(hasVideo ? (lesson.video_xp || 30) : 0) + 50}XP
                         </span>
                         {canDo && !lesson.completed && (
-                          <ChevronDownIcon className={`w-4 h-4 transition-none ${isOpen ? "rotate-180" : ""}`} style={{ color: G2 }} />
+                          <ChevronDownIcon
+                            className={`w-4 h-4 transition-none ${isOpen ? "rotate-180" : ""}`}
+                            style={{ color: G2 }}
+                          />
                         )}
                       </div>
                     </button>
 
-                    {/* Expanded */}
+                    {/* ── Mini progress bar inside card ── */}
+                    {hasVideo && canDo && !lesson.completed && (
+                      <div style={{ height: 4, background: "#e8e8e8" }}>
+                        <div style={{ height: "100%", width: `${(stepsDone / stepsTotal) * 100}%`, background: G2, transition: "width 0.3s steps(4)" }} />
+                      </div>
+                    )}
+
+                    {/* ── Expanded content ── */}
                     {isOpen && canDo && !lesson.completed && (
-                      <div className="px-4 pb-4 animate-fade-in border-t-2" style={{ borderColor: "#d4d4d0" }}>
-                        <div className="p-3 my-3 space-y-2" style={{ background: G6, border: `2px solid #d4d4d0` }}>
-                          {lesson.checklist.map((item, ci) => (
-                            <div key={ci} className="flex items-start gap-2">
-                              <div className="check-pixel mt-0.5">
-                                <CheckIcon className="w-3 h-3" style={{ color: G2 }} />
+                      <div className="animate-fade-in border-t-2" style={{ borderColor: "#d4d4d0" }}>
+
+                        {/* Step tabs (если есть видео) */}
+                        {hasVideo && (
+                          <div className="flex" style={{ borderBottom: `2px solid #d4d4d0` }}>
+                            <button
+                              onClick={() => setStep(s => ({ ...s, [lesson.id]: "video" }))}
+                              className="flex-1 py-2.5 font-pixel text-[8px] flex items-center justify-center gap-2 transition-none"
+                              style={curStep === "video"
+                                ? { background: G1, color: "#fff" }
+                                : { background: G6, color: MUTED }}>
+                              {lesson.video_watched
+                                ? <CheckIcon className="w-3 h-3" style={{ color: G4 }} />
+                                : <PlayIcon className="w-3 h-3" />}
+                              ШАГ 1: ВИДЕО
+                              {!lesson.video_watched && (
+                                <span style={{ color: G4 }}>+{lesson.video_xp}XP</span>
+                              )}
+                            </button>
+                            <button
+                              onClick={() => lesson.video_watched && setStep(s => ({ ...s, [lesson.id]: "task" }))}
+                              className="flex-1 py-2.5 font-pixel text-[8px] flex items-center justify-center gap-2 transition-none"
+                              style={curStep === "task"
+                                ? { background: G1, color: "#fff" }
+                                : !lesson.video_watched
+                                  ? { background: G6, color: "#ccc", cursor: "not-allowed" }
+                                  : { background: G6, color: MUTED }}>
+                              {lesson.completed
+                                ? <CheckIcon className="w-3 h-3" style={{ color: G4 }} />
+                                : <CheckCircleIcon className="w-3 h-3" />}
+                              ШАГ 2: ЗАДАНИЕ
+                              <span style={{ color: G4 }}>+50XP</span>
+                            </button>
+                          </div>
+                        )}
+
+                        {/* ── ВИДЕО шаг ── */}
+                        {curStep === "video" && hasVideo && (
+                          <div className="p-4 space-y-4">
+                            <VimeoPlayer url={lesson.video_url!} />
+                            {lesson.video_watched ? (
+                              <div className="font-pixel text-[8px] text-center py-2" style={{ color: G2 }}>
+                                ✓ ВИДЕО ПРОСМОТРЕНО — XP ПОЛУЧЕНЫ
                               </div>
-                              <span className="font-vt323 text-xl leading-tight" style={{ color: INK }}>{item.text}</span>
+                            ) : (
+                              <PixelBtn
+                                onClick={() => watchVideo(lesson)}
+                                disabled={watching === lesson.id}
+                                size="lg"
+                                className="w-full"
+                              >
+                                {watching === lesson.id
+                                  ? "СОХРАНЯЕМ..."
+                                  : `▶ ПОСМОТРЕЛ — +${lesson.video_xp} XP`}
+                              </PixelBtn>
+                            )}
+                            {lesson.video_watched && (
+                              <PixelBtn
+                                onClick={() => setStep(s => ({ ...s, [lesson.id]: "task" }))}
+                                variant="ghost"
+                                size="md"
+                                className="w-full"
+                              >
+                                ПЕРЕЙТИ К ЗАДАНИЮ →
+                              </PixelBtn>
+                            )}
+                          </div>
+                        )}
+
+                        {/* ── ЗАДАНИЕ шаг (или единственный шаг без видео) ── */}
+                        {(curStep === "task" || !hasVideo) && (
+                          <div className="p-4 space-y-4">
+                            {/* Чеклист */}
+                            <div className="p-3 space-y-2" style={{ background: G6, border: `2px solid #d4d4d0` }}>
+                              {lesson.checklist.map((item, ci) => (
+                                <div key={ci} className="flex items-start gap-2">
+                                  <div className="check-pixel mt-0.5">
+                                    <CheckIcon className="w-3 h-3" style={{ color: G2 }} />
+                                  </div>
+                                  <span className="font-vt323 text-xl leading-tight" style={{ color: INK }}>
+                                    {item.text}
+                                  </span>
+                                </div>
+                              ))}
                             </div>
-                          ))}
-                        </div>
-                        <PixelBtn
-                          onClick={() => complete(lesson)}
-                          disabled={completing === lesson.id}
-                          size="lg"
-                          className="w-full"
-                        >
-                          {completing === lesson.id
-                            ? "СОХРАНЯЕМ..."
-                            : "✓ ВЫПОЛНЕНО — +50 XP"}
-                        </PixelBtn>
+
+                            {/* Заблокировано если видео не просмотрено */}
+                            {hasVideo && !lesson.video_watched ? (
+                              <div className="font-pixel text-[8px] text-center py-3" style={{ color: MUTED, border: `2px dashed #d4d4d0` }}>
+                                🔒 СНАЧАЛА ПОСМОТРИ ВИДЕО
+                              </div>
+                            ) : (
+                              <PixelBtn
+                                onClick={() => completeLesson(lesson)}
+                                disabled={completing === lesson.id}
+                                size="lg"
+                                className="w-full"
+                              >
+                                {completing === lesson.id ? "СОХРАНЯЕМ..." : "✓ ЗАДАНИЕ ВЫПОЛНЕНО — +50 XP"}
+                              </PixelBtn>
+                            )}
+                          </div>
+                        )}
                       </div>
                     )}
                   </PixelCard>
