@@ -233,7 +233,7 @@ function LandingScreen({ onAuth }: { onAuth: (u: User) => void }) {
         <div className="max-w-6xl mx-auto px-6 pt-10 pb-0 flex flex-col">
 
           {/* Основная строка: текст + сцена */}
-          <div style={{ display: "grid", gridTemplateColumns: "50% 50%", alignItems: "end" }}>
+          <div style={{ display: "grid", gridTemplateColumns: "58% 42%", alignItems: "end" }}>
 
             {/* ── LEFT: текст ── */}
             <div className="pb-10 pt-4 pr-6" {...reveal("hero-left")}>
