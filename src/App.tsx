@@ -156,11 +156,17 @@ function LandingScreen({ onAuth }: { onAuth: (u: User) => void }) {
 
   useEffect(() => {
     const els = document.querySelectorAll("[data-reveal]");
+    const ids = new Set<string>();
+    els.forEach(el => {
+      const rect = el.getBoundingClientRect();
+      if (rect.top < window.innerHeight) ids.add((el as HTMLElement).dataset.reveal!);
+    });
+    if (ids.size) setVisible(ids);
     const obs = new IntersectionObserver(entries => {
       entries.forEach(e => {
         if (e.isIntersecting) setVisible(v => new Set([...v, (e.target as HTMLElement).dataset.reveal!]));
       });
-    }, { threshold: 0.15 });
+    }, { threshold: 0 });
     els.forEach(el => obs.observe(el));
     return () => obs.disconnect();
   }, []);
