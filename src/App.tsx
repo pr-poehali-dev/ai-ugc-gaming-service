@@ -311,7 +311,7 @@ function LandingScreen({ onAuth }: { onAuth: (u: User) => void }) {
             { num: "30",   unit: "ДНЕЙ",   label: "до первой монетизации", img: "https://cdn.poehali.dev/projects/5137e801-4ad0-4168-8f01-73f78e2e10e1/bucket/5330fac6-f3b2-4298-9fcd-499665d6b74d.png" },
             { num: "15",   unit: "ПОСТОВ", label: "реальных публикаций",   img: "https://cdn.poehali.dev/projects/5137e801-4ad0-4168-8f01-73f78e2e10e1/bucket/32ba8633-c067-4c4b-a44d-d4ede8bfff91.png" },
             { num: "4",    unit: "МИССИИ", label: "с хуками и шаблонами",  img: "https://cdn.poehali.dev/projects/5137e801-4ad0-4168-8f01-73f78e2e10e1/bucket/f47337f8-23d1-4f18-954e-3d7584ea4bfc.png" },
-            { num: "100%", unit: "ЧЕСТНО", label: "без обещаний",          img: "https://cdn.poehali.dev/projects/5137e801-4ad0-4168-8f01-73f78e2e10e1/bucket/70a85a0d-d998-4dfe-adf6-4099f06ac25e.png" },
+            { num: "100%", unit: "ЧЕСТНО", label: "без обещаний стать звездой", img: "https://cdn.poehali.dev/projects/5137e801-4ad0-4168-8f01-73f78e2e10e1/bucket/70a85a0d-d998-4dfe-adf6-4099f06ac25e.png" },
           ].map((s, i) => (
             <div key={i} className="flex items-center gap-4" {...reveal(`stat-${i}`, i * 80)}>
               <img src={s.img} alt="" style={{ width: 72, height: 72, objectFit: "contain", imageRendering: "pixelated", flexShrink: 0 }} />
