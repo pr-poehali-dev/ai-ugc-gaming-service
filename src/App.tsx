@@ -265,7 +265,7 @@ function LandingScreen({ onAuth }: { onAuth: (u: User) => void }) {
             {/* ── RIGHT: сцена ── */}
             <div style={{ display: "flex", alignItems: "flex-end", justifyContent: "center" }} {...reveal("hero-right", 100)}>
               <img
-                src="https://cdn.poehali.dev/projects/5137e801-4ad0-4168-8f01-73f78e2e10e1/bucket/0358d9d1-d579-44ac-b72a-cdb531d0cdfc.png"
+                src="https://cdn.poehali.dev/projects/5137e801-4ad0-4168-8f01-73f78e2e10e1/bucket/95483b2c-8c66-4d7f-bb76-0508351d9941.png"
                 alt="Hero scene"
                 style={{ width: "100%", maxWidth: 580, objectFit: "contain" }}
               />
