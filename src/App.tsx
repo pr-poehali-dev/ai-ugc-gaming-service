@@ -266,38 +266,12 @@ function LandingScreen({ onAuth }: { onAuth: (u: User) => void }) {
             </div>
 
             {/* ── RIGHT: сцена ── */}
-            <div style={{ position: "relative", height: 420 }} {...reveal("hero-right", 100)}>
-
-              {/* Пузырь "..." — над парнем слева-вверх */}
-              <img src="https://cdn.poehali.dev/projects/5137e801-4ad0-4168-8f01-73f78e2e10e1/bucket/16517b3b-ff6f-445e-b14e-4663f0c00b06.png"
-                alt="" style={{ position: "absolute", top: 20, left: "14%", width: 68, imageRendering: "pixelated",
-                  animation: "float-pixel 3s steps(4) infinite" }} />
-
-              {/* Пузырь лайков "♥ 23" — над девушкой справа */}
-              <img src="https://cdn.poehali.dev/projects/5137e801-4ad0-4168-8f01-73f78e2e10e1/bucket/0c167c01-4a30-4065-b2c7-657f0fb34da8.png"
-                alt="" style={{ position: "absolute", top: 30, right: "4%", width: 84, imageRendering: "pixelated",
-                  animation: "float-pixel 2.8s steps(4) infinite", animationDelay: "600ms" }} />
-
-              {/* График роста — центр-верх */}
-              <img src="https://cdn.poehali.dev/projects/5137e801-4ad0-4168-8f01-73f78e2e10e1/bucket/244e8ef2-465a-4d07-9730-72d958c3b81f.png"
-                alt="" style={{ position: "absolute", top: 0, left: "32%", width: 200, imageRendering: "pixelated",
-                  animation: "float-pixel 4s steps(4) infinite", animationDelay: "200ms" }} />
-
-              {/* Парень со смартфоном — слева внизу */}
-              <img src="https://cdn.poehali.dev/projects/5137e801-4ad0-4168-8f01-73f78e2e10e1/bucket/03c291e8-743c-4756-83be-038f5fa139c7.png"
-                alt="Creator" style={{ position: "absolute", bottom: 0, left: "0%", width: 180, imageRendering: "pixelated" }} />
-
-              {/* Камера на штативе — рядом с парнем */}
-              <img src="https://cdn.poehali.dev/projects/5137e801-4ad0-4168-8f01-73f78e2e10e1/bucket/446a9633-23aa-41f5-83a3-648b83efbb61.png"
-                alt="" style={{ position: "absolute", bottom: 0, left: "30%", width: 80, imageRendering: "pixelated" }} />
-
-              {/* Зеркалка на полу — между камерой и столом */}
-              <img src="https://cdn.poehali.dev/projects/5137e801-4ad0-4168-8f01-73f78e2e10e1/bucket/dfd8400c-3152-4d2b-8183-4cf81d218da6.png"
-                alt="" style={{ position: "absolute", bottom: 4, left: "43%", width: 58, imageRendering: "pixelated" }} />
-
-              {/* Девушка за ноутбуком — справа */}
-              <img src="https://cdn.poehali.dev/projects/5137e801-4ad0-4168-8f01-73f78e2e10e1/bucket/df9363d2-79e9-4a76-a59f-ce4f8bc8fb92.png"
-                alt="Blogger" style={{ position: "absolute", bottom: 0, right: "0%", width: 260, imageRendering: "pixelated" }} />
+            <div style={{ display: "flex", alignItems: "flex-end", justifyContent: "center" }} {...reveal("hero-right", 100)}>
+              <img
+                src="https://cdn.poehali.dev/projects/5137e801-4ad0-4168-8f01-73f78e2e10e1/bucket/0358d9d1-d579-44ac-b72a-cdb531d0cdfc.png"
+                alt="Hero scene"
+                style={{ width: "100%", maxWidth: 580, objectFit: "contain" }}
+              />
             </div>
           </div>
 
