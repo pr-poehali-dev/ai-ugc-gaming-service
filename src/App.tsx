@@ -223,67 +223,136 @@ function LandingScreen({ onAuth }: { onAuth: (u: User) => void }) {
       </nav>
 
       {/* ── HERO ── */}
-      <section className="max-w-5xl mx-auto px-6 pt-16 pb-20 text-center">
-        {/* Scanline декор */}
-        <div className="inline-block mb-6 px-4 py-1 font-pixel text-[8px]"
-          style={{ background: G2, color: "#fff", border: `2px solid ${G0}`, boxShadow: `3px 3px 0 ${G0}` }}
-          {...reveal("hero-badge")}>
-          SEASON 01 — ОТКРЫТ НАБОР
-        </div>
+      <section style={{ background: "#eef2ea" }}>
+        <div className="max-w-6xl mx-auto px-6 pt-10 pb-0">
 
-        <h1 className="font-pixel leading-loose mb-6"
-          style={{ fontSize: "clamp(18px, 5vw, 36px)", color: INK, lineHeight: 1.6 }}
-          {...reveal("hero-title", 100)}>
-          ТЫ НЕ ПРОХОДИШЬ КУРС.<br />
-          <span style={{ color: G2 }}>ТЫ ПОЛУЧАЕШЬ МИССИЮ</span><br />
-          И ВЫПОЛНЯЕШЬ ЕЁ ПУБЛИЧНО.
-        </h1>
+          {/* Две колонки: текст слева, иллюстрация справа */}
+          <div className="flex flex-col lg:flex-row items-end gap-0">
 
-        <p className="font-vt323 text-2xl max-w-2xl mx-auto mb-10" style={{ color: MUTED, lineHeight: 1.5 }}
-          {...reveal("hero-sub", 200)}>
-          За 30 дней — настроенный блог, 10-15 публикаций,
-          понятный контент-процесс и первые попытки монетизации.
-          Честно. Без обещаний стать популярным.
-        </p>
-
-        <div className="flex flex-col sm:flex-row gap-4 justify-center items-center" {...reveal("hero-cta", 300)}>
-          <PixelBtn onClick={() => setShowAuth(true)} size="lg" className="text-lg px-8 py-4">
-            ► ПОЛУЧИТЬ ПЕРВУЮ МИССИЮ
-          </PixelBtn>
-          <a href="#how" className="font-pixel text-[9px]" style={{ color: MUTED }}>
-            КАК ЭТО РАБОТАЕТ ↓
-          </a>
-        </div>
-
-        {/* Pixel character animation */}
-        <div className="mt-14 flex justify-center gap-8 flex-wrap" {...reveal("hero-chars", 400)}>
-          {["НОВИЧОК", "БЛОГЕР", "МОНЕТИЗАЦИЯ"].map((stage, i) => (
-            <div key={i} className="text-center">
-              <div className="w-16 h-16 mx-auto mb-2 flex items-center justify-center font-pixel text-[8px] text-white"
-                style={{
-                  background: i === 2 ? G2 : i === 1 ? G1 : "#555",
-                  border: `3px solid ${G0}`,
-                  boxShadow: `4px 4px 0 ${G0}`,
-                  animation: `march ${1 + i * 0.3}s steps(4) infinite`,
-                  animationDelay: `${i * 200}ms`,
-                }}>
-                {i === 0 ? "?" : i === 1 ? "▶" : "★"}
+            {/* ── LEFT: текст ── */}
+            <div className="flex-1 pb-10 pt-6 lg:pr-8" {...reveal("hero-left")}>
+              {/* Season badge */}
+              <div className="inline-flex items-center gap-2 mb-6 px-3 py-1.5 font-pixel text-[8px]"
+                style={{ border: `2px solid ${G1}`, color: G1, background: "transparent" }}>
+                <span style={{ color: G2 }}>+</span> SEASON 01 — ОТКРЫТ НАБОР <span style={{ color: G2 }}>+</span>
               </div>
-              <p className="font-pixel text-[7px]" style={{ color: i === 2 ? G2 : MUTED }}>{stage}</p>
+
+              {/* Headline */}
+              <h1 className="font-pixel mb-6" style={{ fontSize: "clamp(16px, 2.8vw, 30px)", color: INK, lineHeight: 2 }}>
+                ТЫ НЕ ПРОХОДИШЬ КУРС.<br />
+                <span style={{ color: G2 }}>ТЫ ПОЛУЧАЕШЬ МИССИЮ</span><br />
+                И ВЫПОЛНЯЕШЬ ЕЁ ПУБЛИЧНО.
+              </h1>
+
+              {/* Subtext */}
+              <p className="font-vt323 text-xl mb-8 max-w-md" style={{ color: MUTED, lineHeight: 1.55 }}>
+                За 30 дней — настроенный блог, 10–15 публикаций,
+                понятный контент-процесс и первые попытки монетизации.
+                Честно. Без обещаний стать популярным.
+              </p>
+
+              {/* CTA */}
+              <div className="flex flex-wrap items-center gap-5">
+                <PixelBtn onClick={() => setShowAuth(true)} size="lg">
+                  ПОЛУЧИТЬ ПЕРВУЮ МИССИЮ ►
+                </PixelBtn>
+                <a href="#how" className="font-pixel text-[9px] flex items-center gap-2"
+                  style={{ color: G2, borderBottom: `2px dotted ${G2}`, paddingBottom: 2 }}>
+                  КАК ЭТО РАБОТАЕТ +
+                </a>
+              </div>
             </div>
-          ))}
-          <div className="self-center font-pixel text-[14px]" style={{ color: G2 }}>→→→</div>
+
+            {/* ── RIGHT: иллюстрация ── */}
+            <div className="relative flex-1 flex items-end justify-center min-h-[360px] lg:min-h-[440px]"
+              {...reveal("hero-right", 150)}>
+
+              {/* Пузырь чата (левый верх) */}
+              <img src="https://cdn.poehali.dev/projects/5137e801-4ad0-4168-8f01-73f78e2e10e1/bucket/ba5b9265-c2f6-48ee-a44a-0323e2c03482.png"
+                alt="" style={{ position: "absolute", top: 0, left: "8%", width: 72, imageRendering: "pixelated",
+                  animation: "float-pixel 3s steps(4) infinite" }} />
+
+              {/* Окно с видео (центр-верх) */}
+              <img src="https://cdn.poehali.dev/projects/5137e801-4ad0-4168-8f01-73f78e2e10e1/bucket/6655d7dc-0eca-458e-b212-c7c3f19e21f4.png"
+                alt="" style={{ position: "absolute", top: 10, left: "22%", width: 220, imageRendering: "pixelated",
+                  animation: "float-pixel 3.5s steps(4) infinite", animationDelay: "400ms" }} />
+
+              {/* График (правый верх) */}
+              <img src="https://cdn.poehali.dev/projects/5137e801-4ad0-4168-8f01-73f78e2e10e1/bucket/244e8ef2-465a-4d07-9730-72d958c3b81f.png"
+                alt="" style={{ position: "absolute", top: 0, right: "2%", width: 160, imageRendering: "pixelated",
+                  animation: "float-pixel 4s steps(4) infinite", animationDelay: "200ms" }} />
+
+              {/* Лайки пузырь */}
+              <img src="https://cdn.poehali.dev/projects/5137e801-4ad0-4168-8f01-73f78e2e10e1/bucket/0c167c01-4a30-4065-b2c7-657f0fb34da8.png"
+                alt="" style={{ position: "absolute", top: "20%", right: "1%", width: 90, imageRendering: "pixelated",
+                  animation: "float-pixel 2.8s steps(4) infinite", animationDelay: "600ms" }} />
+
+              {/* Персонаж 1 — парень со смартфоном (слева) */}
+              <img src="https://cdn.poehali.dev/projects/5137e801-4ad0-4168-8f01-73f78e2e10e1/bucket/03c291e8-743c-4756-83be-038f5fa139c7.png"
+                alt="Creator" style={{ position: "absolute", bottom: 0, left: "4%", width: 190, imageRendering: "pixelated",
+                  animation: "march 1.8s steps(4) infinite" }} />
+
+              {/* Камера на штативе */}
+              <img src="https://cdn.poehali.dev/projects/5137e801-4ad0-4168-8f01-73f78e2e10e1/bucket/446a9633-23aa-41f5-83a3-648b83efbb61.png"
+                alt="" style={{ position: "absolute", bottom: 0, left: "40%", width: 90, imageRendering: "pixelated" }} />
+
+              {/* Персонаж 2 — девушка за ноутбуком (справа) */}
+              <img src="https://cdn.poehali.dev/projects/5137e801-4ad0-4168-8f01-73f78e2e10e1/bucket/df9363d2-79e9-4a76-a59f-ce4f8bc8fb92.png"
+                alt="Blogger" style={{ position: "absolute", bottom: 0, right: "2%", width: 250, imageRendering: "pixelated",
+                  animation: "march 2.2s steps(4) infinite", animationDelay: "300ms" }} />
+
+              {/* Зеркальная камера */}
+              <img src="https://cdn.poehali.dev/projects/5137e801-4ad0-4168-8f01-73f78e2e10e1/bucket/dfd8400c-3152-4d2b-8183-4cf81d218da6.png"
+                alt="" style={{ position: "absolute", bottom: "8%", left: "36%", width: 64, imageRendering: "pixelated",
+                  animation: "float-pixel 3s steps(4) infinite", animationDelay: "900ms" }} />
+            </div>
+          </div>
+
+          {/* ── Progression bar: НОВИЧОК → БЛОГЕР → МОНЕТИЗАЦИЯ ── */}
+          <div style={{ borderTop: `3px solid ${G1}`, marginTop: 0 }}>
+            <div className="grid grid-cols-3 divide-x" style={{ borderColor: G1 }}>
+              {[
+                { label: "НОВИЧОК",      sub: "ТВОЙ СТАРТ",       img: "https://cdn.poehali.dev/projects/5137e801-4ad0-4168-8f01-73f78e2e10e1/bucket/03c291e8-743c-4756-83be-038f5fa139c7.png", arrow: true },
+                { label: "БЛОГЕР",       sub: "СОЗДАЁШЬ КОНТЕНТ", img: "https://cdn.poehali.dev/projects/5137e801-4ad0-4168-8f01-73f78e2e10e1/bucket/6655d7dc-0eca-458e-b212-c7c3f19e21f4.png", arrow: true },
+                { label: "МОНЕТИЗАЦИЯ",  sub: "ПЕРВЫЕ РЕЗУЛЬТАТЫ",img: "https://cdn.poehali.dev/projects/5137e801-4ad0-4168-8f01-73f78e2e10e1/bucket/244e8ef2-465a-4d07-9730-72d958c3b81f.png", arrow: false },
+              ].map((stage, i) => (
+                <div key={i} className="flex items-center gap-4 px-6 py-4 relative"
+                  style={{ background: i === 1 ? "#e4eae0" : "#eef2ea", borderRight: i < 2 ? `2px solid ${G1}` : "none" }}>
+                  <img src={stage.img} alt={stage.label}
+                    style={{ width: 52, height: 52, objectFit: "contain", imageRendering: "pixelated", flexShrink: 0 }} />
+                  <div>
+                    <p className="font-pixel text-[9px]" style={{ color: INK }}>{stage.label}</p>
+                    <p className="font-vt323 text-lg" style={{ color: MUTED }}>{stage.sub}</p>
+                  </div>
+                  {stage.arrow && (
+                    <div className="absolute -right-5 top-1/2 -translate-y-1/2 z-10 font-pixel text-[12px]"
+                      style={{ color: G2 }}>--&gt;</div>
+                  )}
+                </div>
+              ))}
+            </div>
+          </div>
         </div>
       </section>
 
       {/* ── STATS ── */}
-      <section style={{ background: G1, borderTop: `4px solid ${G0}`, borderBottom: `4px solid ${G0}` }}>
-        <div className="max-w-5xl mx-auto px-6 py-8 grid grid-cols-2 md:grid-cols-4 gap-6">
-          {STATS.map((s, i) => (
-            <div key={i} className="text-center" {...reveal(`stat-${i}`, i * 80)}>
-              <p className="font-pixel text-2xl md:text-3xl" style={{ color: G4 }}>{s.num}</p>
-              <p className="font-pixel text-[9px] mt-1" style={{ color: "#fff" }}>{s.unit}</p>
-              <p className="font-vt323 text-lg mt-1" style={{ color: G5 }}>{s.label}</p>
+      <section style={{ background: G0, borderTop: `4px solid #111`, borderBottom: `4px solid #111` }}>
+        <div className="max-w-6xl mx-auto px-6 py-8 grid grid-cols-2 md:grid-cols-4 gap-8">
+          {[
+            { num: "30",   unit: "ДНЕЙ",   label: "до первой монетизации", img: "https://cdn.poehali.dev/projects/5137e801-4ad0-4168-8f01-73f78e2e10e1/bucket/446a9633-23aa-41f5-83a3-648b83efbb61.png" },
+            { num: "15",   unit: "ПОСТОВ", label: "реальных публикаций",   img: "https://cdn.poehali.dev/projects/5137e801-4ad0-4168-8f01-73f78e2e10e1/bucket/dfd8400c-3152-4d2b-8183-4cf81d218da6.png" },
+            { num: "4",    unit: "МИССИИ", label: "с хуками и шаблонами",  img: "https://cdn.poehali.dev/projects/5137e801-4ad0-4168-8f01-73f78e2e10e1/bucket/16517b3b-ff6f-445e-b14e-4663f0c00b06.png" },
+            { num: "100%", unit: "ЧЕСТНО", label: "без обещаний",          img: "https://cdn.poehali.dev/projects/5137e801-4ad0-4168-8f01-73f78e2e10e1/bucket/0c167c01-4a30-4065-b2c7-657f0fb34da8.png" },
+          ].map((s, i) => (
+            <div key={i} className="flex items-center gap-4" {...reveal(`stat-${i}`, i * 80)}>
+              <img src={s.img} alt="" style={{ width: 48, height: 48, objectFit: "contain", imageRendering: "pixelated", flexShrink: 0 }} />
+              <div>
+                <div className="flex items-baseline gap-2">
+                  <p className="font-pixel text-2xl" style={{ color: G4 }}>{s.num}</p>
+                  <p className="font-pixel text-[9px]" style={{ color: G4 }}>{s.unit}</p>
+                </div>
+                <p className="font-vt323 text-lg" style={{ color: G5 }}>{s.label}</p>
+              </div>
             </div>
           ))}
         </div>
