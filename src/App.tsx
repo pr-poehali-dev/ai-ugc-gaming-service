@@ -695,11 +695,23 @@ function PathTab({ onXpGain }: { onXpGain: (xp: number, total: number) => void }
                         )}
                       </div>
 
+                      {/* Картинка + шеврон справа */}
                       <div className="flex items-center gap-2 flex-shrink-0">
-                        {/* XP за урок */}
-                        <span className="font-pixel text-[7px]" style={{ color: G2 }}>
-                          +{(hasVideo ? (lesson.video_xp || 30) : 0) + 50}XP
-                        </span>
+                        {lesson.cover_url && (
+                          <div style={{
+                            width: 80, height: 64,
+                            border: `2px solid ${lesson.completed ? G2 : "#d4d4d0"}`,
+                            boxShadow: `3px 3px 0 ${lesson.completed ? G1 : "#bbb"}`,
+                            overflow: "hidden", flexShrink: 0,
+                            opacity: !canDo ? 0.35 : 1,
+                          }}>
+                            <img
+                              src={lesson.cover_url}
+                              alt=""
+                              style={{ width: "100%", height: "100%", objectFit: "cover", imageRendering: "pixelated", display: "block" }}
+                            />
+                          </div>
+                        )}
                         {canDo && !lesson.completed && (
                           <ChevronDownIcon
                             className={`w-4 h-4 transition-none ${isOpen ? "rotate-180" : ""}`}
@@ -820,32 +832,8 @@ function PathTab({ onXpGain }: { onXpGain: (xp: number, total: number) => void }
                               </PixelBtn>
                             )}
 
-                            {/* Cover image */}
-                            {lesson.cover_url && (
-                              <div style={{ border: `3px solid ${G1}`, boxShadow: `4px 4px 0 ${G0}` }}>
-                                <img
-                                  src={lesson.cover_url}
-                                  alt={lesson.title}
-                                  style={{ display: "block", width: "100%", imageRendering: "pixelated" }}
-                                />
-                              </div>
-                            )}
                           </div>
                         )}
-                      </div>
-                    )}
-
-                    {/* Cover preview на выполненном уроке */}
-                    {lesson.completed && lesson.cover_url && (
-                      <div style={{ height: 56, overflow: "hidden", borderTop: `2px solid ${G2}` }}>
-                        <img
-                          src={lesson.cover_url}
-                          alt=""
-                          style={{
-                            width: "100%", objectFit: "cover", objectPosition: "center",
-                            imageRendering: "pixelated", opacity: 0.7,
-                          }}
-                        />
                       </div>
                     )}
                   </PixelCard>
